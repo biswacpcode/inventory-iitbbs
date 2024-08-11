@@ -1,11 +1,11 @@
-import Navbar from "@/components/shared/Navbar";
+import Hero from "@/components/shared/Hero";
 
 
 
 export default function Home() {
   return (
     <main>
-      Home Page
+      <Hero />
     </main>
   );
 }
