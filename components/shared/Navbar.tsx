@@ -14,6 +14,7 @@ import {
   LoginLink,
 } from "@kinde-oss/kinde-auth-nextjs/server";
 import { ProfileDropdown } from "./ProfileDropdown";
+import { PackageIcon } from "lucide-react";
 //   import { MenuIcon } from "./SocialIcons";
 
 export default async function Navbar() {
@@ -98,7 +99,8 @@ export default async function Navbar() {
       >
         {/* <Image src={logoLight} alt="Vault IIT BBS" width={150}  /> */}
 
-        <div className="text-xl font-bold">Vault IIT BBS</div>
+        <PackageIcon className="w-6 h-6" />
+        <span className="text-lg font-bold">Vault IIT BBS</span>
         {/* <Vault IIT BBSLogo /> */}
         {/* <Badge className="mx-2 h-8">BETA</Badge> */}
         <span className="sr-only">Vault IIT BBS</span>

@@ -1,65 +1,13 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/hku5dP2FbYU
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { JSX, SVGProps } from "react"
 
 export default function Component() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between">
-        <Link href="#" className="flex items-center gap-2" prefetch={false}>
-          <PackageIcon className="w-6 h-6" />
-          <span className="text-lg font-bold">Vault IIT BBS</span>
-        </Link>
-        {/* <nav className="hidden md:flex items-center gap-6">
-          <Link href="#" className="hover:underline" prefetch={false}>
-            About
-          </Link>
-          <Link href="#" className="hover:underline" prefetch={false}>
-            Features
-          </Link>
-          <Link href="#" className="hover:underline" prefetch={false}>
-            How It Works
-          </Link>
-          <Link href="#" className="hover:underline" prefetch={false}>
-            Contact
-          </Link>
-        </nav> */}
-        <Button variant="outline" className="hidden md:inline-flex">
-          Get Started
-        </Button>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <MenuIcon className="w-6 h-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full max-w-xs">
-            <div className="flex flex-col gap-6 p-6">
-              <Link href="#" className="text-lg font-medium hover:underline" prefetch={false}>
-                About
-              </Link>
-              <Link href="#" className="text-lg font-medium hover:underline" prefetch={false}>
-                Features
-              </Link>
-              <Link href="#" className="text-lg font-medium hover:underline" prefetch={false}>
-                How It Works
-              </Link>
-              <Link href="#" className="text-lg font-medium hover:underline" prefetch={false}>
-                Contact
-              </Link>
-              <Button variant="outline">Get Started</Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+
       </header>
       <main className="flex-1">
         <section

@@ -15,7 +15,6 @@ export async function GET() {
   }
 
   // Get the collection ID from environment variables
-  
   const collectionId = process.env.USERS_COLLECTION_ID!;
   const databaseId = process.env.DATABASE_ID!;
 
@@ -35,7 +34,18 @@ export async function GET() {
     throw new Error("Failed to retrieve user from Appwrite database");
   } 
 
-  // If the user doesn't exist, create a new user
+  // Determine the user's role based on their email
+  let role = "Student"; // Default role
+
+  const email = user.email?.toLowerCase() ?? "";
+
+  if (email.includes("secy")) {
+    role = "Society";
+  } else if (email.includes("iitbbs")) {
+    role = "Council";
+  }
+
+  // If the user doesn't exist, create a new user with the determined role
   if (!dbUser) {
     try {
       dbUser = await database.createDocument(
@@ -48,7 +58,7 @@ export async function GET() {
           firstName: user.given_name ?? "",
           lastName: user.family_name ?? "",
           imageUrl: user.picture ?? "",
-          role: "Student",
+          role: role, // Assign the determined role
         }
       );
     } catch (error) {
