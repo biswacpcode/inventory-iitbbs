@@ -3,6 +3,7 @@
 import { JSX, SVGProps, useEffect, useState } from "react";
 import { ReadInventoryItems } from "@/lib/actions"; // Make sure the import path is correct
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface InventoryItem {
   $id: string;
@@ -85,9 +86,11 @@ export default function InventoryPage() {
                   </span>
                 </div>
               </div>
-              <Button size="sm" className="mt-4 w-full">
-                Book
-              </Button>
+              <Link href={`/inventory/${product.$id}`}>
+                <Button size="sm" className="mt-4 w-full">
+                  Book
+                </Button>
+              </Link>
             </div>
           </div>
         ))}

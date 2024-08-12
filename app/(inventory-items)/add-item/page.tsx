@@ -59,6 +59,7 @@ export default function Component() {
             </Label>
             <Textarea
               id="description"
+              name="description"
               rows={4}
               placeholder="Enter item description"
             />
@@ -102,9 +103,9 @@ export default function Component() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Societies</SelectLabel>
-                    <SelectItem value="tech">WebnD</SelectItem>
-                    <SelectItem value="sports">Neuro</SelectItem>
-                    <SelectItem value="socio-cult">RISC</SelectItem>
+                    <SelectItem value="WebnD">WebnD</SelectItem>
+                    <SelectItem value="Neuro">Neuro</SelectItem>
+                    <SelectItem value="RISC">RISC</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
