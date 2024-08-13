@@ -24,9 +24,16 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { CreateInventoryItem } from "@/lib/actions";
+import { CreateInventoryItem, fetchUsersByRole } from "@/lib/actions";
+import { unstable_noStore as noStore } from "next/cache";
 
-export default function Component() {
+export default async function Component() {
+  noStore()
+  // FETCH USERS BY ROLE
+  const societies = await fetchUsersByRole("Society");
+  const councils = await fetchUsersByRole("council");
+
+
   return (
     <Card className="max-w-2xl mx-auto p-6 sm:p-8 md:p-10">
       <CardHeader>
@@ -97,15 +104,17 @@ export default function Component() {
                 Society
               </Label>
               <Select name="society">
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger>
                   <SelectValue placeholder="Select society" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Societies</SelectLabel>
-                    <SelectItem value="WebnD">WebnD</SelectItem>
-                    <SelectItem value="Neuro">Neuro</SelectItem>
-                    <SelectItem value="RISC">RISC</SelectItem>
+                    {
+                      societies.map((society) => (
+                        <SelectItem key={society.$id} value={society.id}>{society.firstName} {society.lastName}</SelectItem>
+                      ))
+                    }
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -115,19 +124,17 @@ export default function Component() {
                 Council
               </Label>
               <Select name="council">
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger>
                   <SelectValue placeholder="Select council" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Councils</SelectLabel>
-                    <SelectItem value="tech-council">Tech Council</SelectItem>
-                    <SelectItem value="sports-council">
-                      Sports Council
-                    </SelectItem>
-                    <SelectItem value="socio-cult-council">
-                      Socio-Cult Council
-                    </SelectItem>
+                    {
+                      councils.map((council) => (
+                        <SelectItem key={council.$id} value={council.id}>{council.firstName} {council.lastName}</SelectItem>
+                      ))
+                    }
                   </SelectGroup>
                 </SelectContent>
               </Select>

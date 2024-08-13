@@ -93,20 +93,68 @@ export async function ReadInventoryItems() {
   }
 }
 
-// Define the fetchSocietyUsers function
-export async function fetchSocietyUsers() {
+// GET INVENTORY ITEM BY ID
+export async function ReadInventoryItemById(itemId: string) {
+  try {
+    // Fetch a single inventory item by ID
+    const response = await database.getDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId
+    );
+
+    // Map the document to the InventoryItem type
+    const item = {
+      $id: response.$id,
+      itemName: response.itemName,
+      itemImage: response.itemImage,
+      totalQuantity: response.totalQuantity,
+      availableQuantity: response.availableQuantity,
+      description: response.description,
+      society: response.society,
+      council: response.council,
+      addedBy: response.addedBy,
+    };
+
+    return item;
+  } catch (error) {
+    console.error("Failed to read inventory item:", error);
+    throw new Error("Failed to read inventory item");
+  }
+}
+
+// FETCH USERS BY ROLE
+export async function fetchUsersByRole(role: string) {
   try {
     const response = await database.listDocuments(
-      '[YOUR_DATABASE_ID]', // Replace with your database ID
-      '[YOUR_COLLECTION_ID]', // Replace with your collection ID for users
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
       [
-        Query.equal("role", ["society"])
+        Query.equal("role", [role])
       ]
     );
 
     return response.documents;
   } catch (error) {
-    console.error('Error fetching society users:', error);
-    throw new Error('Failed to fetch society users');
+    console.error('Error fetching users by role:', error);
+    throw new Error('Failed to fetch users by role');
   }
 }
+
+// Define the fetchSocietyUsers function
+// export async function fetchSocietyUsers() {
+//   try {
+//     const response = await database.listDocuments(
+//       '[YOUR_DATABASE_ID]', // Replace with your database ID
+//       '[YOUR_COLLECTION_ID]', // Replace with your collection ID for users
+//       [
+//         Query.equal("role", ["society"])
+//       ]
+//     );
+
+//     return response.documents;
+//   } catch (error) {
+//     console.error('Error fetching society users:', error);
+//     throw new Error('Failed to fetch society users');
+//   }
+// }

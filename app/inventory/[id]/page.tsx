@@ -1,8 +1,3 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/8VP1TeMpn3n
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import { Separator } from "@/components/ui/separator"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -10,36 +5,45 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { JSX, SVGProps } from "react"
+import { ReadInventoryItemById } from "@/lib/actions"
 
-export default function Component() {
+export default async function Component({ params }: { params: { id: string } }) {
+
+  // Fetching the inventory item by ID
+  const item = await ReadInventoryItemById(params.id)
+
   return (
     <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
+      {/* ---------------------- ITEM DETAILS ---------------------- */}
       <div className="grid gap-4">
         <img
-          src="/placeholder.svg"
+          src={item.itemImage}
           alt="Issue Item"
           width={600}
           height={400}
           className="rounded-lg object-cover w-full aspect-[3/2]"
         />
         <div className="grid gap-2">
-          <h2 className="text-2xl font-bold">Gardening Tools</h2>
+          <h2 className="text-2xl font-bold">{item.itemName}</h2>
           <div className="flex items-center gap-2 text-muted-foreground">
             <PackageIcon className="w-5 h-5" />
-            <span>Available: 25</span>
+            <span>Available: {item.availableQuantity}</span>
             <Separator orientation="vertical" className="h-5" />
-            <span>Total: 50</span>
+            <span>Total: {item.totalQuantity}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <UsersIcon className="w-5 h-5" />
-            <span>Society: Acme Gardening Club</span>
+            <span>Society: {item.society}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <BuildingIcon className="w-5 h-5" />
-            <span>Council: Greenville Parks Department</span>
+            <span>Council: {item.society}</span>
           </div>
         </div>
       </div>
+
+      
+      {/* ---------------------- BOOKING DETAILS ---------------------- */}
       <Card>
         <CardHeader>
           <CardTitle>Book Issue Item</CardTitle>
@@ -53,8 +57,18 @@ export default function Component() {
                 <Input type="date" id="start-date" />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="start-time">Start Time</Label>
+                <Input type="time" id="start-time" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
                 <Label htmlFor="end-date">End Date</Label>
                 <Input type="date" id="end-date" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="end-time">End Time</Label>
+                <Input type="time" id="end-time" />
               </div>
             </div>
             <div className="grid gap-2">

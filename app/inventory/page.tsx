@@ -5,6 +5,8 @@ import { ReadInventoryItems } from "@/lib/actions"; // Make sure the import path
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+
+// ---------------------DEFINING DATA TYPES---------------------
 interface InventoryItem {
   $id: string;
   itemName: string;
@@ -20,6 +22,7 @@ export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ---------------------FETCHING DATA---------------------
   useEffect(() => {
     async function fetchItems() {
       try {
