@@ -141,6 +141,55 @@ export async function fetchUsersByRole(role: string) {
   }
 }
 
+// CREATING BOOKING REQUESTS
+export async function CreateBookingRequest(formdata: FormData) {
+  // VERIFYING USER
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  // EXTRACTING FORM DATA
+  const itemId = formdata.get("itemId") as string;
+  const startDate = formdata.get("startDate") as string;
+  const startTime = formdata.get("startTime") as string;
+  const endDate = formdata.get("endDate") as string;
+  const endTime = formdata.get("endTime") as string;
+  const bookedQuantity = parseInt(formdata.get("bookedQuantity") as string, 10);
+  const purpose = formdata.get("purpose") as string;
+
+  // COMBINE DATE AND TIME INTO ISO STRING
+  const start = new Date(`${startDate}T${startTime}`).toISOString();
+  const end = new Date(`${endDate}T${endTime}`).toISOString();
+
+  try {
+    // Create a new booking request in Appwrite
+    await database.createDocument(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!, // Ensure these are set in your .env.local
+      'unique()', // Generates a unique document ID
+      {
+        itemId,
+        start,
+        end,
+        purpose,
+        bookedQuantity,
+        requestedBy: user.id, // Associate booking with the current user
+        status: "pending", // Set the initial status
+      }
+    );
+
+    revalidatePath(`/inventory/${itemId}`);
+  } catch (error) {
+    console.error("Failed to create booking request:", error);
+    throw new Error("Failed to create booking request");
+  }
+}
+
+
+
 // Define the fetchSocietyUsers function
 // export async function fetchSocietyUsers() {
 //   try {

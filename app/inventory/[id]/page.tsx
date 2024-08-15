@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { JSX, SVGProps } from "react"
 import { ReadInventoryItemById } from "@/lib/actions"
+import { CreateBookingRequest } from "@/lib/actions"
 
 export default async function Component({ params }: { params: { id: string } }) {
 
@@ -50,34 +51,35 @@ export default async function Component({ params }: { params: { id: string } }) 
           <CardDescription>Select the dates and quantity you need.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4">
+          <form className="grid gap-4" action={CreateBookingRequest}>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
+                <input type="hidden" name="itemId" value={item.$id} />
                 <Label htmlFor="start-date">Start Date</Label>
-                <Input type="date" id="start-date" />
+                <Input type="date" id="start-date" name="startDate" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="start-time">Start Time</Label>
-                <Input type="time" id="start-time" />
+                <Input type="time" id="start-time" name="startTime" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="end-date">End Date</Label>
-                <Input type="date" id="end-date" />
+                <Input type="date" id="end-date" name="endDate" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="end-time">End Time</Label>
-                <Input type="time" id="end-time" />
+                <Input type="time" id="end-time" name="endTime" />
               </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="quantity">Quantity</Label>
-              <Input type="number" id="quantity" min="1" max="25" />
+              <Input type="number" id="quantity" min="1" name="bookedQuantity" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="purpose">Purpose</Label>
-              <Textarea id="purpose" rows={3} />
+              <Textarea id="purpose" rows={3} name="purpose" />
             </div>
             <Button size="lg" className="w-full">
               Book Item
