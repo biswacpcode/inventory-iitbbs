@@ -55,6 +55,7 @@ export default async function Component({ params }: { params: { id: string } }) 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <input type="hidden" name="itemId" value={item.$id} />
+                <input type="hidden" name="requestedTo" value={item.addedBy} />
                 <Label htmlFor="start-date">Start Date</Label>
                 <Input type="date" id="start-date" name="startDate" />
               </div>

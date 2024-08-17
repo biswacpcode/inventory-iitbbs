@@ -159,6 +159,7 @@ export async function CreateBookingRequest(formdata: FormData) {
   const endTime = formdata.get("endTime") as string;
   const bookedQuantity = parseInt(formdata.get("bookedQuantity") as string, 10);
   const purpose = formdata.get("purpose") as string;
+  const requestedTo = formdata.get("requestedTo") as string;
 
   // COMBINE DATE AND TIME INTO ISO STRING
   const start = new Date(`${startDate}T${startTime}`).toISOString();
@@ -171,12 +172,13 @@ export async function CreateBookingRequest(formdata: FormData) {
       process.env.BOOKINGS_COLLECTION_ID!, // Ensure these are set in your .env.local
       'unique()', // Generates a unique document ID
       {
-        itemId,
+        itemId, 
         start,
         end,
         purpose,
         bookedQuantity,
-        requestedBy: user.id, // Associate booking with the current user
+        requestedUser: user.id, // Associate booking with the current user
+        requestedTo,
         status: "pending", // Set the initial status
       }
     );
@@ -186,24 +188,58 @@ export async function CreateBookingRequest(formdata: FormData) {
     console.error("Failed to create booking request:", error);
     throw new Error("Failed to create booking request");
   }
+  redirect(`/requests`);
 }
 
+// GETTING BOOKING ITEMS BY "requestedUser" ID
+export async function ReadBookingItemsByRequestedBy() {
 
+  // VERIFYING USER
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
 
-// Define the fetchSocietyUsers function
-// export async function fetchSocietyUsers() {
-//   try {
-//     const response = await database.listDocuments(
-//       '[YOUR_DATABASE_ID]', // Replace with your database ID
-//       '[YOUR_COLLECTION_ID]', // Replace with your collection ID for users
-//       [
-//         Query.equal("role", ["society"])
-//       ]
-//     );
+  if (!user) {
+    return redirect("/");
+  }
 
-//     return response.documents;
-//   } catch (error) {
-//     console.error('Error fetching society users:', error);
-//     throw new Error('Failed to fetch society users');
-//   }
-// }
+  try {
+      // Fetch booking items from Appwrite
+      const response = await database.listDocuments(
+          process.env.DATABASE_ID!,
+          process.env.BOOKINGS_COLLECTION_ID!,
+          [
+              Query.equal("requestedUser", [user.id])
+          ]
+      );
+
+      // Initialize an array to store the items with itemName
+      const itemsWithNames = [];
+
+      // Iterate over the fetched booking items
+      for (const doc of response.documents) {
+          // Fetch the corresponding inventory item to get the itemName
+          const inventoryItem = await ReadInventoryItemById(doc.itemId);
+
+          // Construct the booking item with the itemName included
+          const bookingItem = {
+              $id: doc.$id,
+              itemId: doc.itemId,
+              itemName: inventoryItem.itemName, // Adding itemName here
+              start: doc.start,
+              end: doc.end,
+              purpose: doc.purpose,
+              bookedQuantity: doc.bookedQuantity,
+              requestedBy: doc.requestedBy,
+              status: doc.status,
+          };
+
+          // Add the booking item to the array
+          itemsWithNames.push(bookingItem);
+      }
+
+      return itemsWithNames;
+  } catch (error) {
+      console.error("Failed to read booking items:", error);
+      throw new Error("Failed to read booking items");
+  }
+}

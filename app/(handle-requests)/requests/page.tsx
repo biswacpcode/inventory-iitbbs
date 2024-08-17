@@ -1,91 +1,44 @@
 /**
  * v0 by Vercel.
- * @see https://v0.dev/t/VpUcoGpun0c
+ * @see https://v0.dev/t/aSXL8YeaMGr
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-"use client"
-
 import { JSX, SVGProps, useState } from "react"
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ReadBookingItemsByRequestedBy } from "@/lib/actions"
 
-export default function Component() {
-  const [requests, setRequests] = useState([
-    {
-      id: 1,
-      serialNumber: "REQ-001",
-      name: "Laptop Charger",
-      startDate: "2023-06-01 09:00 AM",
-      endDate: "2023-06-15 05:00 PM",
-      requestedQuantity: 2,
-      status: "pending",
-    },
-    {
-      id: 2,
-      serialNumber: "REQ-002",
-      name: "Wireless Mouse",
-      startDate: "2023-06-05 11:30 AM",
-      endDate: "2023-06-12 03:45 PM",
-      requestedQuantity: 1,
-      status: "approved",
-    },
-    {
-      id: 3,
-      serialNumber: "REQ-003",
-      name: "Printer Ink Cartridge",
-      startDate: "2023-06-10 02:00 PM",
-      endDate: "2023-06-20 06:30 PM",
-      requestedQuantity: 3,
-      status: "canceled",
-    },
-    {
-      id: 4,
-      serialNumber: "REQ-004",
-      name: "Ergonomic Keyboard",
-      startDate: "2023-06-15 08:00 AM",
-      endDate: "2023-06-25 04:00 PM",
-      requestedQuantity: 1,
-      status: "issued",
-    },
-    {
-      id: 5,
-      serialNumber: "REQ-005",
-      name: "HDMI Cable",
-      startDate: "2023-06-20 10:30 AM",
-      endDate: "2023-06-30 07:15 PM",
-      requestedQuantity: 2,
-      status: "returned",
-    },
-  ])
-  const handleDelete = (id: number) => {
-    setRequests(requests.filter((request) => request.id !== id))
-  }
-  const handleEdit = (id: number) => {}
+export default async function Component() {
+
+  const requests = await ReadBookingItemsByRequestedBy()
+  
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Requests</h1>
       <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse">
-          <thead>
-            <tr className="bg-gray-200 text-gray-700">
-              <th className="px-4 py-3 text-left">Serial Number</th>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">Start Date/Time</th>
-              <th className="px-4 py-3 text-left">End Date/Time</th>
-              <th className="px-4 py-3 text-left">Requested Quantity</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {/* <TableHead className="w-[200px]">Serial Number</TableHead> */}
+              <TableHead>Name</TableHead>
+              <TableHead>Start Date/Time</TableHead>
+              <TableHead>End Date/Time</TableHead>
+              <TableHead>Requested Quantity</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {requests.map((request) => (
-              <tr key={request.id} className="border-b border-gray-200 hover:bg-gray-100">
-                <td className="px-4 py-3 font-medium">{request.serialNumber}</td>
-                <td className="px-4 py-3">{request.name}</td>
-                <td className="px-4 py-3">{request.startDate}</td>
-                <td className="px-4 py-3">{request.endDate}</td>
-                <td className="px-4 py-3">{request.requestedQuantity}</td>
-                <td className="px-4 py-3">
-                  <span
+              <TableRow key={request.$id} className="border-b border-gray-200 hover:bg-muted">
+                {/* <TableCell className="font-medium">{request.$id}</TableCell> */}
+                <TableCell>{request.itemName}</TableCell>
+                <TableCell>{request.start}</TableCell>
+                <TableCell>{request.end}</TableCell>
+                <TableCell>{request.bookedQuantity}</TableCell>
+                <TableCell>
+                  <Badge
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       request.status === "pending"
                         ? "bg-yellow-200 text-yellow-800"
@@ -99,20 +52,20 @@ export default function Component() {
                     }`}
                   >
                     {request.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => handleEdit(request.id)}>
+                  </Badge>
+                </TableCell>
+                <TableCell className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" >
                     <FilePenIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="icon" onClick={() => handleDelete(request.id)}>
+                  <Button variant="outline" size="icon" >
                     <TrashIcon className="h-4 w-4" />
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
