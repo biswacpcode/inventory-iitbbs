@@ -243,3 +243,58 @@ export async function ReadBookingItemsByRequestedBy() {
       throw new Error("Failed to read booking items");
   }
 }
+
+// GETTING BOOKING ITEMS BY "requestedTo" ID
+export async function ReadBookingItemsByRequestedTo() {
+
+  // VERIFYING USER
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+      // Fetch booking items from Appwrite
+      const response = await database.listDocuments(
+          process.env.DATABASE_ID!,
+          process.env.BOOKINGS_COLLECTION_ID!,
+          [
+              Query.equal("requestedTo", [user.id])
+          ]
+      );
+
+      // Initialize an array to store the items with itemName
+      const itemsWithNames = [];
+
+      // Iterate over the fetched booking items
+      for (const doc of response.documents) {
+          // Fetch the corresponding inventory item to get the itemName
+          const inventoryItem = await ReadInventoryItemById(doc.itemId);
+
+          // Construct the booking item with the itemName included
+          const bookingItem = {
+              $id: doc.$id,
+              itemId: doc.itemId,
+              itemName: inventoryItem.itemName, // Adding itemName here
+              start: doc.start,
+              end: doc.end,
+              purpose: doc.purpose,
+              bookedQuantity: doc.bookedQuantity,
+              requestedBy: doc.requestedBy,
+              status: doc.status,
+          };
+
+          // Add the booking item to the array
+          itemsWithNames.push(bookingItem);
+      }
+
+      return itemsWithNames;
+  } catch (error) {
+      console.error("Failed to read booking items:", error);
+      throw new Error("Failed to read booking items");
+  }
+}
+
+
