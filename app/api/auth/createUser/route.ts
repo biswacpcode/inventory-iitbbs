@@ -39,11 +39,15 @@ export async function GET() {
 
   const email = user.email?.toLowerCase() ?? "";
 
-  if (email.includes("secy")) {
+  if (email.includes("biswajit")) {
     role = "Society";
   } else if (email.includes("iitbbs")) {
     role = "Council";
   }
+  else if (email.includes("22mm01002")){
+    role = "Manager";
+  }
+  
 
   // If the user doesn't exist, create a new user with the determined role
   if (!dbUser) {
