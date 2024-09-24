@@ -123,7 +123,7 @@ export default function Component() {
               <h2 className="text-3xl font-bold mb-4">How Vault IIT BBS Works</h2>
               <p className="text-muted-foreground mb-4">
                 Vault IIT BBS is designed to be intuitive and easy to use, making inventory management a breeze for the
-                Students' Gymkhana.
+                Students&apos; Gymkhana.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-background rounded-lg p-4">

@@ -5,7 +5,7 @@ import { database } from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
-
+import Alert from "@/components/shared/Alert";
 
 // ADDING NEW INVENTORY ITEM
 export async function CreateInventoryItem(formdata: FormData) {
@@ -19,23 +19,26 @@ export async function CreateInventoryItem(formdata: FormData) {
 
   // EXTRACTING FORM DATA
   const itemName = formdata.get("name") as string;
-  const itemImage = "https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg"; // Placeholder, handle the actual image upload
+  const itemImage =
+    "https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg"; // Placeholder, handle the actual image upload
   const totalQuantity = parseInt(formdata.get("total-quantity") as string, 10);
-  const availableQuantity = parseInt(formdata.get("available-quantity") as string, 10);
+  const availableQuantity = parseInt(
+    formdata.get("available-quantity") as string,
+    10
+  );
   const description = formdata.get("description") as string;
   const society = formdata.get("society") as string;
   const council = formdata.get("council") as string;
 
   // You might want to handle the file upload separately before this step if there is an image to be uploaded
-//   console.log({ itemName, itemImage, totalQuantity, availableQuantity, description, society, council });
-
+  //   console.log({ itemName, itemImage, totalQuantity, availableQuantity, description, society, council });
 
   try {
     // Create a new inventory item in Appwrite
     await database.createDocument(
       process.env.DATABASE_ID!,
       process.env.ITEMS_COLLECTION_ID!, // Ensure these are set in your .env.local
-      'unique()', // Generates a unique document ID
+      "unique()", // Generates a unique document ID
       {
         itemName,
         description,
@@ -129,15 +132,13 @@ export async function fetchUsersByRole(role: string) {
     const response = await database.listDocuments(
       process.env.DATABASE_ID!,
       process.env.USERS_COLLECTION_ID!,
-      [
-        Query.equal("role", [role])
-      ]
+      [Query.equal("role", [role])]
     );
 
     return response.documents;
   } catch (error) {
-    console.error('Error fetching users by role:', error);
-    throw new Error('Failed to fetch users by role');
+    console.error("Error fetching users by role:", error);
+    throw new Error("Failed to fetch users by role");
   }
 }
 
@@ -153,6 +154,7 @@ export async function CreateBookingRequest(formdata: FormData) {
 
   // EXTRACTING FORM DATA
   const itemId = formdata.get("itemId") as string;
+  const item = await ReadInventoryItemById(itemId);
   const startDate = formdata.get("startDate") as string;
   const startTime = formdata.get("startTime") as string;
   const endDate = formdata.get("endDate") as string;
@@ -170,9 +172,9 @@ export async function CreateBookingRequest(formdata: FormData) {
     await database.createDocument(
       process.env.DATABASE_ID!,
       process.env.BOOKINGS_COLLECTION_ID!, // Ensure these are set in your .env.local
-      'unique()', // Generates a unique document ID
+      "unique()", // Generates a unique document ID
       {
-        itemId, 
+        itemId,
         start,
         end,
         purpose,
@@ -182,6 +184,17 @@ export async function CreateBookingRequest(formdata: FormData) {
         status: "pending", // Set the initial status
       }
     );
+    const newAvailableQuantity = item.availableQuantity - bookedQuantity;
+
+  // Update the item to reduce available quantity
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+    itemId, // Use itemId to identify the document
+    {
+      availableQuantity: newAvailableQuantity,
+    }
+  );
 
     revalidatePath(`/inventory/${itemId}`);
   } catch (error) {
@@ -193,7 +206,6 @@ export async function CreateBookingRequest(formdata: FormData) {
 
 // GETTING BOOKING ITEMS BY "requestedUser" ID
 export async function ReadBookingItemsByRequestedBy() {
-
   // VERIFYING USER
   const { getUser } = getKindeServerSession();
   const user = await getUser();
@@ -203,50 +215,85 @@ export async function ReadBookingItemsByRequestedBy() {
   }
 
   try {
-      // Fetch booking items from Appwrite
-      const response = await database.listDocuments(
-          process.env.DATABASE_ID!,
-          process.env.BOOKINGS_COLLECTION_ID!,
-          [
-              Query.equal("requestedUser", [user.id])
-          ]
-      );
+    // Fetch booking items from Appwrite
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      [Query.equal("requestedUser", [user.id])]
+    );
 
-      // Initialize an array to store the items with itemName
-      const itemsWithNames = [];
+    // Initialize an array to store the items with itemName
+    const itemsWithNames = [];
 
-      // Iterate over the fetched booking items
-      for (const doc of response.documents) {
-          // Fetch the corresponding inventory item to get the itemName
-          const inventoryItem = await ReadInventoryItemById(doc.itemId);
+    // Iterate over the fetched booking items
+    for (const doc of response.documents) {
+      // Fetch the corresponding inventory item to get the itemName
+      const inventoryItem = await ReadInventoryItemById(doc.itemId);
 
-          // Construct the booking item with the itemName included
-          const bookingItem = {
-              $id: doc.$id,
-              itemId: doc.itemId,
-              itemName: inventoryItem.itemName, // Adding itemName here
-              start: doc.start,
-              end: doc.end,
-              purpose: doc.purpose,
-              bookedQuantity: doc.bookedQuantity,
-              requestedBy: doc.requestedBy,
-              status: doc.status,
-          };
+      // Construct the booking item with the itemName included
+      const bookingItem = {
+        $id: doc.$id,
+        itemId: doc.itemId,
+        itemName: inventoryItem.itemName, // Adding itemName here
+        start: doc.start,
+        end: doc.end,
+        purpose: doc.purpose,
+        bookedQuantity: doc.bookedQuantity,
+        requestedBy: doc.requestedBy,
+        status: doc.status,
+      };
 
-          // Add the booking item to the array
-          itemsWithNames.push(bookingItem);
-      }
+      // Add the booking item to the array
+      itemsWithNames.push(bookingItem);
+    }
 
-      return itemsWithNames;
+    return itemsWithNames;
   } catch (error) {
-      console.error("Failed to read booking items:", error);
-      throw new Error("Failed to read booking items");
+    console.error("Failed to read booking items:", error);
+    throw new Error("Failed to read booking items");
+  }
+}
+
+// Deleting Requests that are requested by "requestedUser ID"
+
+export async function DeleteBookingRequest(requestId: string, itemId: string, bookedQuantity: number) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+    // Deleting the document from the Appwrite database
+    await database.deleteDocument(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      requestId
+    );
+    const item = await ReadInventoryItemById(itemId);
+    const newAvailableQuantity = item.availableQuantity + bookedQuantity;
+
+  // Update the item to reduce available quantity
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+    itemId, // Use itemId to identify the document
+    {
+      availableQuantity: newAvailableQuantity,
+    }
+  );
+
+
+    revalidatePath(`/requests`);
+  } catch (error) {
+    console.error("Failed to delete booking request:", error);
+    throw new Error("Failed to delete booking request");
   }
 }
 
 // GETTING BOOKING ITEMS BY "requestedTo" ID
 export async function ReadBookingItemsByRequestedTo() {
-
   // VERIFYING USER
   const { getUser } = getKindeServerSession();
   const user = await getUser();
@@ -256,45 +303,41 @@ export async function ReadBookingItemsByRequestedTo() {
   }
 
   try {
-      // Fetch booking items from Appwrite
-      const response = await database.listDocuments(
-          process.env.DATABASE_ID!,
-          process.env.BOOKINGS_COLLECTION_ID!,
-          [
-              Query.equal("requestedTo", [user.id])
-          ]
-      );
+    // Fetch booking items from Appwrite
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      [Query.equal("requestedTo", [user.id])]
+    );
 
-      // Initialize an array to store the items with itemName
-      const itemsWithNames = [];
+    // Initialize an array to store the items with itemName
+    const itemsWithNames = [];
 
-      // Iterate over the fetched booking items
-      for (const doc of response.documents) {
-          // Fetch the corresponding inventory item to get the itemName
-          const inventoryItem = await ReadInventoryItemById(doc.itemId);
+    // Iterate over the fetched booking items
+    for (const doc of response.documents) {
+      // Fetch the corresponding inventory item to get the itemName
+      const inventoryItem = await ReadInventoryItemById(doc.itemId);
 
-          // Construct the booking item with the itemName included
-          const bookingItem = {
-              $id: doc.$id,
-              itemId: doc.itemId,
-              itemName: inventoryItem.itemName, // Adding itemName here
-              start: doc.start,
-              end: doc.end,
-              purpose: doc.purpose,
-              bookedQuantity: doc.bookedQuantity,
-              requestedBy: doc.requestedBy,
-              status: doc.status,
-          };
+      // Construct the booking item with the itemName included
+      const bookingItem = {
+        $id: doc.$id,
+        itemId: doc.itemId,
+        itemName: inventoryItem.itemName, // Adding itemName here
+        start: doc.start,
+        end: doc.end,
+        purpose: doc.purpose,
+        bookedQuantity: doc.bookedQuantity,
+        requestedBy: doc.requestedBy,
+        status: doc.status,
+      };
 
-          // Add the booking item to the array
-          itemsWithNames.push(bookingItem);
-      }
+      // Add the booking item to the array
+      itemsWithNames.push(bookingItem);
+    }
 
-      return itemsWithNames;
+    return itemsWithNames;
   } catch (error) {
-      console.error("Failed to read booking items:", error);
-      throw new Error("Failed to read booking items");
+    console.error("Failed to read booking items:", error);
+    throw new Error("Failed to read booking items");
   }
 }
-
-
