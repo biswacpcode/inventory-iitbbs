@@ -23,9 +23,9 @@ export default function Page() {
   }, []) // Empty dependency array means this runs once after the initial render
 
   // Function to approve an item
-  async function approveItem(requestId: string) {
+  async function approveItem(requestId: string, statusTo: string) {
     try {
-      await ApproveBookingRequest(requestId)
+      await ApproveBookingRequest(requestId, statusTo)
       // Optionally refetch items after approving
       const updatedItems = await ReadBookingItemsByRequestedTo()
       setItems(updatedItems)
@@ -50,7 +50,7 @@ export default function Page() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.map((item) => (
+            {[...items].reverse().map((item) => (
               <TableRow key={item.$id} className="border-b border-gray-200 hover:bg-muted">
                 <TableCell>{item.itemName}</TableCell>
                 <TableCell>{item.start}</TableCell>
@@ -63,7 +63,7 @@ export default function Page() {
                         ? 'bg-yellow-200 text-yellow-800'
                         : item.status === 'approved'
                         ? 'bg-green-200 text-green-800'
-                        : item.status === 'canceled'
+                        : item.status === 'rejected'
                         ? 'bg-red-200 text-red-800'
                         : item.status === 'issued'
                         ? 'bg-blue-200 text-blue-800'
@@ -74,10 +74,10 @@ export default function Page() {
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id)}>
+                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "approved")}>
                     <FilePenIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "rejected")}>
                     <TrashIcon className="h-4 w-4" />
                   </Button>
                 </TableCell>

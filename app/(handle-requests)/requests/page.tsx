@@ -43,7 +43,11 @@ export default function Component() {
   }, []);
 
   // Handle deletion of a request
-  async function handleDelete(requestId: string, itemId: string, bookedQuantity: number) {
+  async function handleDelete(
+    requestId: string,
+    itemId: string,
+    bookedQuantity: number
+  ) {
     try {
       await DeleteBookingRequest(requestId, itemId, bookedQuantity);
       // Refetch requests after successful deletion
@@ -69,7 +73,7 @@ export default function Component() {
             </TableRow>
           </TableHeader>
           <TableBody>
-          {[...requests].reverse().map((request) => (
+            {[...requests].reverse().map((request) => (
               <TableRow
                 key={request.$id}
                 className="border-b border-gray-200 hover:bg-muted"
@@ -85,7 +89,7 @@ export default function Component() {
                         ? "bg-yellow-200 text-yellow-800"
                         : request.status === "approved"
                         ? "bg-green-200 text-green-800"
-                        : request.status === "canceled"
+                        : request.status === "rejected"
                         ? "bg-red-200 text-red-800"
                         : request.status === "issued"
                         ? "bg-blue-200 text-blue-800"
@@ -99,7 +103,13 @@ export default function Component() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => handleDelete(request.$id, request.itemId, request.bookedQuantity)}
+                    onClick={() =>
+                      handleDelete(
+                        request.$id,
+                        request.itemId,
+                        request.bookedQuantity
+                      )
+                    }
                   >
                     <TrashIcon className="h-4 w-4" />
                   </Button>

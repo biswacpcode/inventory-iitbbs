@@ -1,7 +1,7 @@
 "use server";
 
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { database , users} from "@/lib/appwrite.config";
+import { database, users } from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
@@ -260,15 +260,15 @@ export async function CreateBookingRequest(formdata: FormData) {
     );
     const newAvailableQuantity = item.availableQuantity - bookedQuantity;
 
-  // Update the item to reduce available quantity
-  await database.updateDocument(
-    process.env.DATABASE_ID!,
-    process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
-    itemId, // Use itemId to identify the document
-    {
-      availableQuantity: newAvailableQuantity,
-    }
-  );
+    // Update the item to reduce available quantity
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+      itemId, // Use itemId to identify the document
+      {
+        availableQuantity: newAvailableQuantity,
+      }
+    );
 
     revalidatePath(`/inventory/${itemId}`);
   } catch (error) {
@@ -330,7 +330,11 @@ export async function ReadBookingItemsByRequestedBy() {
 
 // Deleting Requests that are requested by "requestedUser ID"
 
-export async function DeleteBookingRequest(requestId: string, itemId: string, bookedQuantity: number) {
+export async function DeleteBookingRequest(
+  requestId: string,
+  itemId: string,
+  bookedQuantity: number
+) {
   const { getUser } = getKindeServerSession();
   const user = await getUser();
 
@@ -348,16 +352,15 @@ export async function DeleteBookingRequest(requestId: string, itemId: string, bo
     const item = await ReadInventoryItemById(itemId);
     const newAvailableQuantity = item.availableQuantity + bookedQuantity;
 
-  // Update the item to reduce available quantity
-  await database.updateDocument(
-    process.env.DATABASE_ID!,
-    process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
-    itemId, // Use itemId to identify the document
-    {
-      availableQuantity: newAvailableQuantity,
-    }
-  );
-
+    // Update the item to reduce available quantity
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+      itemId, // Use itemId to identify the document
+      {
+        availableQuantity: newAvailableQuantity,
+      }
+    );
 
     revalidatePath(`/requests`);
   } catch (error) {
@@ -368,7 +371,10 @@ export async function DeleteBookingRequest(requestId: string, itemId: string, bo
 
 // Change the status to approved from booking id which will be provides
 
-export async function ApproveBookingRequest(requestId: string) {
+export async function ApproveBookingRequest(
+  requestId: string,
+  statusTo: string
+) {
   try {
     // Update the status of the booking request to "approved"
     await database.updateDocument(
@@ -376,7 +382,7 @@ export async function ApproveBookingRequest(requestId: string) {
       process.env.BOOKINGS_COLLECTION_ID!,
       requestId,
       {
-        status: "approved",
+        status: statusTo,
       }
     );
 
