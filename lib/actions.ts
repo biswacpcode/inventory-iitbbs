@@ -366,6 +366,27 @@ export async function DeleteBookingRequest(requestId: string, itemId: string, bo
   }
 }
 
+// Change the status to approved from booking id which will be provides
+
+export async function ApproveBookingRequest(requestId: string) {
+  try {
+    // Update the status of the booking request to "approved"
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      requestId,
+      {
+        status: "approved",
+      }
+    );
+
+    revalidatePath(`/items-requests`);
+  } catch (error) {
+    console.error("Failed to approve booking request:", error);
+    throw new Error("Failed to approve booking request");
+  }
+}
+
 // GETTING BOOKING ITEMS BY "requestedTo" ID
 export async function ReadBookingItemsByRequestedTo() {
   // VERIFYING USER
