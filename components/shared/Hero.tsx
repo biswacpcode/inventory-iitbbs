@@ -22,9 +22,11 @@ export default function Component() {
             Bhubaneswar keep track of their assets and resources.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
+            <a href="#about">
             <Button variant="outline" className="w-full sm:w-auto">
               Learn More
             </Button>
+            </a>
             <Button className="w-full sm:w-auto">Get Started</Button>
           </div>
         </section>

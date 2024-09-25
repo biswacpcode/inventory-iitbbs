@@ -1,0 +1,130 @@
+"use client"
+import { useState, useEffect } from "react";
+import { JSX, SVGProps } from "react";
+import { ReadInventoryItemById, ReadUserById } from "@/lib/actions";
+
+// Define the type for the item
+interface InventoryItem {
+  itemImage: string;
+  itemName: string;
+  availableQuantity: number;
+  totalQuantity: number;
+  society: string;
+  council: string;
+}
+
+interface User {
+  firstName: string;
+  lastName: string;
+}
+
+export default function Component({ params }: { params: { id: string } }) {
+  const [item, setItem] = useState<InventoryItem | null>(null);
+  const [societyName, setSocietyName] = useState<string>("");
+  const [councilName, setCouncilName] = useState<string>("");
+
+  // Fetch the inventory item details
+  useEffect(() => {
+    async function fetchItem() {
+      try {
+        const fetchedItem: InventoryItem = await ReadInventoryItemById(params.id);
+        setItem(fetchedItem);
+
+        // Fetch society and council details after fetching the item
+        if (fetchedItem) {
+          const society = await ReadUserById(fetchedItem.society);
+          const council = await ReadUserById(fetchedItem.council);
+          setSocietyName(society.lastName);
+          setCouncilName(council.lastName);
+        }
+      } catch (error) {
+        console.error("Error fetching item or user data", error);
+      }
+    }
+    fetchItem();
+  }, [params.id]);
+
+  // Display a loading state if the item is not yet fetched
+  if (!item) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
+      {/* ---------------------- ITEM DETAILS ---------------------- */}
+      <div className="grid gap-4">
+        <img
+          src={item.itemImage}
+          alt={item.itemName}
+          width={600}
+          height={400}
+          className="rounded-lg object-cover w-full aspect-[3/2]"
+        />
+        <div className="grid gap-2">
+          <h2 className="text-2xl font-bold">{item.itemName}</h2>
+
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <UsersIcon className="w-5 h-5" />
+            <span>Society: {societyName}</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <BuildingIcon className="w-5 h-5" />
+            <span>Council: {councilName}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// SVG Icon Components
+function BuildingIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
+      <path d="M9 22v-4h6v4" />
+      <path d="M8 6h.01" />
+      <path d="M16 6h.01" />
+      <path d="M12 6h.01" />
+      <path d="M12 10h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 10h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 10h.01" />
+      <path d="M8 14h.01" />
+    </svg>
+  );
+}
+
+function UsersIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}

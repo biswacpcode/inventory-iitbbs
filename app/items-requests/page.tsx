@@ -4,6 +4,7 @@ import { useEffect, useState, SVGProps } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import Loading from '@/components/shared/Loader'
 
 export default function Page() {
   const [items, setItems] = useState<any[]>([])

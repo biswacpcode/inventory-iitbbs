@@ -71,6 +71,15 @@ export async function GET() {
   }
 
   // Redirect to the development environment URL
-  const redirectUrl = "http://localhost:3000";
+  let redirectUrl = "http://localhost:3000/";
+  if (role === "Manager"){
+    redirectUrl = "http://localhost:3000/manager-portal";
+  }
+  else if (role === "Society"){
+    redirectUrl = "http://localhost:3000/items-requests";}
+  else{
+    redirectUrl = "http://localhost:3000/";
+  }
+  
   return NextResponse.redirect(redirectUrl);
 }

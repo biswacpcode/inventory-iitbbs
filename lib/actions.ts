@@ -129,42 +129,29 @@ export async function ReadInventoryItemById(itemId: string) {
 // Read all the Requests irrespective of user
 
 export async function ReadBookingItems() {
-  // const response = await database.listDocuments(
-  //   process.env.DATABASE_ID!,
-  //   process.env.BOOKINGS_COLLECTION_ID!
-  // );
-  // console.log(response)
   try {
-    // Fetch booking items from Appwrite
     const response = await database.listDocuments(
       process.env.DATABASE_ID!,
       process.env.BOOKINGS_COLLECTION_ID!
     );
 
-    // Initialize an array to store the items with itemName
-    const itemsWithNames = [];
+    const itemsWithNames = await Promise.all(
+      response.documents.map(async (doc) => {
+        const inventoryItem = await ReadInventoryItemById(doc.itemId);
 
-    // Iterate over the fetched booking items
-    for (const doc of response.documents) {
-      // Fetch the corresponding inventory item to get the itemName
-      const inventoryItem = await ReadInventoryItemById(doc.itemId);
-
-      // Construct the booking item with the itemName included
-      const bookingItem = {
-        $id: doc.$id,
-        itemId: doc.itemId,
-        itemName: inventoryItem.itemName, // Adding itemName here
-        start: doc.start,
-        end: doc.end,
-        purpose: doc.purpose,
-        bookedQuantity: doc.bookedQuantity,
-        requestedBy: doc.requestedUser,
-        status: doc.status,
-      };
-
-      // Add the booking item to the array
-      itemsWithNames.push(bookingItem);
-    }
+        return {
+          $id: doc.$id,
+          itemId: doc.itemId,
+          itemName: inventoryItem.itemName,
+          start: doc.start,
+          end: doc.end,
+          purpose: doc.purpose,
+          bookedQuantity: doc.bookedQuantity,
+          requestedBy: doc.requestedUser,
+          status: doc.status,
+        };
+      })
+    );
 
     return itemsWithNames;
   } catch (error) {
