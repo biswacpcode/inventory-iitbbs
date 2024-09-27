@@ -190,13 +190,15 @@ export async function ReadBookingItems() {
     const itemsWithNames = await Promise.all(
       response.documents.map(async (doc) => {
         const inventoryItem = await ReadInventoryItemById(doc.itemId);
+        const start = formatDateTime(doc.start);
+      const end = formatDateTime(doc.end);
 
         return {
           $id: doc.$id,
           itemId: doc.itemId,
           itemName: inventoryItem.itemName,
-          start: doc.start,
-          end: doc.end,
+          start: start,
+        end: end,
           purpose: doc.purpose,
           bookedQuantity: doc.bookedQuantity,
           requestedBy: doc.requestedUser,
@@ -342,14 +344,16 @@ export async function ReadBookingItemsByRequestedBy() {
     for (const doc of response.documents) {
       // Fetch the corresponding inventory item to get the itemName
       const inventoryItem = await ReadInventoryItemById(doc.itemId);
+      const start = formatDateTime(doc.start);
+      const end = formatDateTime(doc.end);
 
       // Construct the booking item with the itemName included
       const bookingItem = {
         $id: doc.$id,
         itemId: doc.itemId,
         itemName: inventoryItem.itemName, // Adding itemName here
-        start: doc.start,
-        end: doc.end,
+        start: start,
+        end: end,
         purpose: doc.purpose,
         bookedQuantity: doc.bookedQuantity,
         requestedBy: doc.requestedBy,
@@ -457,14 +461,16 @@ export async function ReadBookingItemsByRequestedTo() {
     for (const doc of response.documents) {
       // Fetch the corresponding inventory item to get the itemName
       const inventoryItem = await ReadInventoryItemById(doc.itemId);
+      const start = formatDateTime(doc.start);
+      const end = formatDateTime(doc.end);
 
       // Construct the booking item with the itemName included
       const bookingItem = {
         $id: doc.$id,
         itemId: doc.itemId,
         itemName: inventoryItem.itemName, // Adding itemName here
-        start: doc.start,
-        end: doc.end,
+        start: start,
+        end: end,
         purpose: doc.purpose,
         bookedQuantity: doc.bookedQuantity,
         requestedBy: doc.requestedBy,

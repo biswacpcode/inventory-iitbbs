@@ -15,6 +15,7 @@ import {
   ReadBookingItemsByRequestedBy,
   DeleteBookingRequest,
 } from "@/lib/actions";
+import Link from "next/link";
 
 interface Request {
   $id: string;
@@ -78,7 +79,11 @@ export default function Component() {
                 key={request.$id}
                 className="border-b border-gray-200 hover:bg-muted"
               >
-                <TableCell>{request.itemName}</TableCell>
+                <TableCell>
+                  <Link href={`/requests/${request.$id}`}>
+                    {request.itemName}
+                  </Link>
+                </TableCell>
                 <TableCell>{request.start}</TableCell>
                 <TableCell>{request.end}</TableCell>
                 <TableCell>{request.bookedQuantity}</TableCell>

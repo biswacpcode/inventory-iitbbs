@@ -71,7 +71,7 @@ export async function GET() {
   }
 
   // Redirect to the development environment URL
-  const baseUrl = "localhost:3000/";
+  const baseUrl = "http://localhost:3000/";
   let redirectUrl = baseUrl;
   
   if (role === "Manager") {
