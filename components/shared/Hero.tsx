@@ -5,10 +5,10 @@ import { JSX, SVGProps } from "react"
 
 export default function Component() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between">
+      
 
-      </header>
+    <div className="flex flex-col min-h-screen">
+      
       <main className="flex-1">
         <section
           id="hero"

@@ -5,6 +5,7 @@ import { ReadInventoryItems } from "@/lib/actions"; // Ensure the import path is
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Input from "@/components/ui/input"; // Make sure this component exists or replace with a standard input
+import Loading from "@/components/shared/Loader";
 
 // ---------------------DEFINING DATA TYPES---------------------
 interface InventoryItem {
@@ -45,7 +46,7 @@ export default function InventoryPage() {
   );
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading/>;
   }
 
   if (items.length === 0) {

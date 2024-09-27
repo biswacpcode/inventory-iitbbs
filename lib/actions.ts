@@ -125,6 +125,58 @@ export async function ReadInventoryItemById(itemId: string) {
     throw new Error("Failed to read inventory item");
   }
 }
+// Read Booking request per ID
+
+export async function ReadBookedItembyId(requestId: string) {
+  try {
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!, 
+      [Query.equal("$id", [requestId])]
+    );
+
+    if (response.documents.length === 0) {
+      throw new Error("No items found");
+    }
+
+    const doc = response.documents[0];
+    const inventoryItem = await ReadInventoryItemById(doc.itemId);
+    const bookedQuanitity: number = doc.bookedQuantity;
+    const status: string = doc.status;
+
+    return {
+      $id: inventoryItem.$id,
+      itemName: inventoryItem.itemName,
+      itemImage: inventoryItem.itemImage,
+      totalQuantity: inventoryItem.totalQuantity,
+      availableQuantity: inventoryItem.availableQuantity,
+      description: inventoryItem.description,
+      society: inventoryItem.society,
+      council: inventoryItem.council,
+      addedBy: inventoryItem.addedBy,
+      bookedQuantity: bookedQuanitity,
+      status: status,
+    };
+  } catch (error) {
+    console.error("Failed to read booking items:", error);
+    throw new Error("Failed to read booking items");
+  }
+}
+function formatDateTime(isoString: string): string {
+  const date = new Date(isoString);
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+  const year = date.getFullYear();
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+}
+
+
 
 // Read all the Requests irrespective of user
 

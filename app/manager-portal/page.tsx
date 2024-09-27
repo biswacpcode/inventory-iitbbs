@@ -75,7 +75,7 @@ export default function Component() {
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase())
     )
-    .filter((request) => request.status === "approved")
+    .filter((request) => request.status === "approved" || request.status === "issued")
     .reverse();
 
   if (loading) {
@@ -118,7 +118,7 @@ export default function Component() {
                   {users[request.requestedBy]?.email || <Loading/>}
                 </TableCell>
                 <TableCell>
-                  <Link href={`/manager-portal/${request.itemId}`}>
+                  <Link href={`/manager-portal/${request.$id}`}>
                     {request.itemName}
                   </Link>
                 </TableCell>
@@ -126,7 +126,13 @@ export default function Component() {
                 <TableCell>{request.end}</TableCell>
                 <TableCell>{request.bookedQuantity}</TableCell>
                 <TableCell>
-                  <Badge className="px-2 py-1 rounded-full text-xs font-medium bg-green-200 text-green-800">
+                  <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        request.status === 'approved'
+                        ? 'bg-green-200 text-green-800'
+                        : request.status === 'issued'
+                        ? 'bg-blue-200 text-blue-800'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}>
                     {request.status}
                   </Badge>
                 </TableCell>

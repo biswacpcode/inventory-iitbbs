@@ -71,14 +71,13 @@ export async function GET() {
   }
 
   // Redirect to the development environment URL
-  let redirectUrl = "http://localhost:3000/";
-  if (role === "Manager"){
-    redirectUrl = "http://localhost:3000/manager-portal";
-  }
-  else if (role === "Society"){
-    redirectUrl = "http://localhost:3000/items-requests";}
-  else{
-    redirectUrl = "http://localhost:3000/";
+  const baseUrl = "localhost:3000/";
+  let redirectUrl = baseUrl;
+  
+  if (role === "Manager") {
+    redirectUrl = `${baseUrl}manager-portal`;
+  } else if (role === "Society") {
+    redirectUrl = `${baseUrl}items-requests`;
   }
   
   return NextResponse.redirect(redirectUrl);

@@ -75,10 +75,10 @@ export default function Page() {
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "approved")}>
+                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "approved")} title='Approve'>
                     <FilePenIcon className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "rejected")}>
+                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "rejected")} title='Reject'>
                     <TrashIcon className="h-4 w-4" />
                   </Button>
                 </TableCell>

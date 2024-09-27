@@ -1,16 +1,25 @@
 "use client"
 import { useState, useEffect } from "react";
 import { JSX, SVGProps } from "react";
-import { ReadInventoryItemById, ReadUserById } from "@/lib/actions";
+import { ApproveBookingRequest, DeleteBookingRequest, ReadBookedItembyId, ReadInventoryItemById, ReadUserById } from "@/lib/actions";
+import Loading from "@/components/shared/Loader";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 // Define the type for the item
 interface InventoryItem {
+    $id: string;
   itemImage: string;
   itemName: string;
   availableQuantity: number;
   totalQuantity: number;
   society: string;
   council: string;
+
+}
+interface Requested{
+    bookedQuantity: number;
+    status: string;
 }
 
 interface User {
@@ -20,15 +29,19 @@ interface User {
 
 export default function Component({ params }: { params: { id: string } }) {
   const [item, setItem] = useState<InventoryItem | null>(null);
+  const [request, setRequest] = useState<Requested | null>(null);
   const [societyName, setSocietyName] = useState<string>("");
   const [councilName, setCouncilName] = useState<string>("");
+  
 
   // Fetch the inventory item details
   useEffect(() => {
     async function fetchItem() {
       try {
-        const fetchedItem: InventoryItem = await ReadInventoryItemById(params.id);
+        const fetchedItem: InventoryItem = await ReadBookedItembyId(params.id);
         setItem(fetchedItem);
+        const fetchRequst: Requested = await ReadBookedItembyId(params.id);
+        setRequest(fetchRequst);
 
         // Fetch society and council details after fetching the item
         if (fetchedItem) {
@@ -44,9 +57,65 @@ export default function Component({ params }: { params: { id: string } }) {
     fetchItem();
   }, [params.id]);
 
+  async function handleDelete(
+    requestId: string,
+    itemId: string,
+    bookedQuantity: number
+  ) {
+    try {
+      await DeleteBookingRequest(requestId, itemId, bookedQuantity);
+    } catch (error) {
+      console.error("Failed to delete the request:", error);
+    }
+  }
+
+  async function approveItem(requestId: string, statusTo: string) {
+    try {
+      await ApproveBookingRequest(requestId, statusTo)
+    } catch (error) {
+      console.error('Failed to change status:', error)
+    }
+  }
+
+  const Buttons = () => {
+    if (!request) return null; // Handle null or undefined request safely
+    
+    if (request.status === 'approved') {
+      return (
+        <>
+          <Link href={`/manager-portal`}>
+            <Button size="sm" className="mt-4 w-full" onClick={() => approveItem(params.id, "issued")} title="Issue">
+              Received
+            </Button>
+          </Link>
+          <Link href={`/manager-portal`}>
+            <Button size="sm" className="mt-4 w-full" onClick={() => handleDelete(params.id, item.$id, request.bookedQuantity)}>Refused</Button>
+          </Link>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <Link href={`/manager-portal`}>
+            <Button
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => handleDelete(params.id, item.$id, request.bookedQuantity)}
+              title="Return"
+            >
+              Returned
+            </Button>
+          </Link>
+        </>
+      );
+    }
+  };
+  
+  
+
   // Display a loading state if the item is not yet fetched
   if (!item) {
-    return <div>Loading...</div>;
+    return <Loading/>;
   }
 
   return (
@@ -71,6 +140,7 @@ export default function Component({ params }: { params: { id: string } }) {
             <BuildingIcon className="w-5 h-5" />
             <span>Council: {councilName}</span>
           </div>
+          <Buttons/>
         </div>
       </div>
     </div>

@@ -25,7 +25,8 @@ export default async function Navbar() {
   const user = await getUser();
 
   const userId = user?.id;
-  let role;
+  console.log(userId)
+  let role: string | null;// or just let role;
   if (userId) {
     const us = await ReadUserById(userId);
     role = us.role;
@@ -137,10 +138,10 @@ export default async function Navbar() {
         {/* <Image src={logoLight} alt="Vault IIT BBS" width={150}  /> */}
 
         <PackageIcon className="w-6 h-6" />
-        <span className="text-lg font-bold">Vault IIT BBS</span>
+        <span className="text-lg font-bold">Vault IIT BBS | Developed by WebnD</span>
         {/* <Vault IIT BBSLogo /> */}
         {/* <Badge className="mx-2 h-8">BETA</Badge> */}
-        <span className="sr-only">Vault IIT BBS</span>
+        <span className="sr-only">Vault IIT BBS | Developed by WebnD</span>
       </Link>
       <nav className="ml-auto hidden lg:flex gap-6 lg:items-center">
         <Link
