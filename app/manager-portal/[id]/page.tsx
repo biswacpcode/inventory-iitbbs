@@ -1,11 +1,10 @@
 "use client"
 import { useState, useEffect } from "react";
-import { ApproveBookingRequest, DeleteBookingRequest, ReadBookedItembyId, ReadUserById } from "@/lib/actions";
+import { ApproveBookingRequest, ReadBookedItembyId, ReadUserById, receivetimeUpdate, returntimeUpdate } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-// Define the type for the item
 interface InventoryItem {
     $id: string;
     itemImage: string;
@@ -31,10 +30,9 @@ export default function Component({ params }: { params: { id: string } }) {
     const [request, setRequest] = useState<Requested | null>(null);
     const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(false); // To manage loading state
-    const router = useRouter(); // For navigation
+    const [loading, setLoading] = useState<boolean>(false);
+    const router = useRouter();
 
-    // Fetch the inventory item details
     useEffect(() => {
         async function fetchItem() {
             try {
@@ -43,7 +41,6 @@ export default function Component({ params }: { params: { id: string } }) {
                 const fetchRequst: Requested = await ReadBookedItembyId(params.id);
                 setRequest(fetchRequst);
 
-                // Fetch society and council details after fetching the item
                 if (fetchedItem) {
                     const society = await ReadUserById(fetchedItem.society);
                     const council = await ReadUserById(fetchedItem.council);
@@ -57,23 +54,26 @@ export default function Component({ params }: { params: { id: string } }) {
         fetchItem();
     }, [params.id]);
 
-    async function handleDelete(requestId: string, itemId: string, bookedQuantity: number) {
+    async function approveItem(requestId: string, statusTo: string, itemId: string, bookedQuantity:number) {
         setLoading(true);
         try {
-            await DeleteBookingRequest(requestId, itemId, bookedQuantity);
-            router.push('/manager-portal'); // Redirect after success
-        } catch (error) {
-            console.error("Failed to delete the request:", error);
-        } finally {
-            setLoading(false);
-        }
-    }
+            const currentTime = new Date().toISOString();
 
-    async function approveItem(requestId: string, statusTo: string) {
-        setLoading(true);
-        try {
+            // If the status is to "collected", record receive time
+            if (statusTo === "collected") {
+                await receivetimeUpdate(requestId, currentTime);
+            }
+
+            // If the status is to "returned", record return time
+            if (statusTo === "returned") {
+                await returntimeUpdate(requestId, itemId, currentTime, bookedQuantity);
+            }
+
+            // Update the booking request status
             await ApproveBookingRequest(requestId, statusTo);
-            router.push('/manager-portal'); // Redirect after success
+
+            // Redirect after success
+            router.push('/manager-portal');
         } catch (error) {
             console.error('Failed to change status:', error);
         } finally {
@@ -82,7 +82,7 @@ export default function Component({ params }: { params: { id: string } }) {
     }
 
     const Buttons = () => {
-        if (!request || !item) return null; // Handle null or undefined request and item safely
+        if (!request || !item) return null;
 
         if (request.status === 'issued') {
             return (
@@ -91,7 +91,7 @@ export default function Component({ params }: { params: { id: string } }) {
                         <Button
                             size="sm"
                             className="mt-4 w-full"
-                            onClick={() => approveItem(params.id, "collected")}
+                            onClick={() => approveItem(params.id, "collected", item.$id, request.bookedQuantity)}
                             title="Issue"
                         >
                             Issued
@@ -106,7 +106,7 @@ export default function Component({ params }: { params: { id: string } }) {
                         <Button
                             size="sm"
                             className="mt-4 w-full"
-                            onClick={() => handleDelete(params.id, item.$id, request.bookedQuantity)}
+                            onClick={() => approveItem(params.id, "returned", item.$id, request.bookedQuantity)}
                             title="Return"
                         >
                             Returned
@@ -130,14 +130,12 @@ export default function Component({ params }: { params: { id: string } }) {
         }
     };
 
-    // Display a loading state if the item is not yet fetched
-    if (!item) {  
+    if (!item) {
         return <Loading />;
     }
 
     return (
         <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
-            {/* ---------------------- ITEM DETAILS ---------------------- */}
             <div className="grid gap-4">
                 <img
                     src={item.itemImage}

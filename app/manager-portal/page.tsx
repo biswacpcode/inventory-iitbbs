@@ -75,7 +75,6 @@ export default function Component() {
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase())
     )
-    .filter((request) => request.status === "approved" || request.status === "issued" || request.status === "collected")
     .reverse();
 
   if (loading) {

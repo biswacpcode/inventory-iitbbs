@@ -188,17 +188,17 @@ export async function ReadBookingItems() {
     );
 
     const itemsWithNames = await Promise.all(
-      response.documents.map(async (doc) => {
+      response.documents.filter(doc => (doc.status === "approved" || doc.status ==="issued" || doc.status === "collected")).map(async (doc) => {  // Corrected the filter syntax
         const inventoryItem = await ReadInventoryItemById(doc.itemId);
         const start = formatDateTime(doc.start);
-      const end = formatDateTime(doc.end);
+        const end = formatDateTime(doc.end);
 
         return {
           $id: doc.$id,
           itemId: doc.itemId,
           itemName: inventoryItem.itemName,
           start: start,
-        end: end,
+          end: end,
           purpose: doc.purpose,
           bookedQuantity: doc.bookedQuantity,
           requestedBy: doc.requestedUser,
@@ -213,6 +213,7 @@ export async function ReadBookingItems() {
     throw new Error("Failed to read booking items");
   }
 }
+
 
 // GET USER BY ID
 export async function ReadUserById(userId: string) {
@@ -432,6 +433,60 @@ export async function UpdateInventoryItem(itemId: string, total: number, availab
     console.error("Failed to update inventory:", error);
     throw new Error("Failed to update inventory");
   }
+}
+
+//Recieved Item from Manager - Time Update
+export async function receivetimeUpdate(requestId: string, currentTime: string){
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      requestId,
+      {
+        receivedAt: currentTime
+      }
+    );
+  }
+  catch (error) {
+    console.error("Failed to update received time:", error);
+    throw new Error("Failed to update received time:");
+}
+}
+
+
+//Returned to the Manager - Time Update
+export async function returntimeUpdate(requestId: string, itemId: string, currentTime: string, bookedQuanitity: number){
+  try{
+    
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      requestId,
+      {
+        returnedAt: currentTime
+      }
+    );
+
+    const response = await database.getDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId
+    );
+    const availableQuantity = response.availableQuantity;
+    const newAvailableQuantity = availableQuantity+bookedQuanitity;
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId,
+      {
+        availableQuantity: newAvailableQuantity
+        }
+        );
+  }
+  catch (error) {
+    console.error("Failed to update returned time:", error);
+    throw new Error("Failed to update returned time:");
+}
 }
 
 export async function DeleteInventoryItem(
