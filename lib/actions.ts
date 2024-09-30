@@ -370,6 +370,109 @@ export async function ReadBookingItemsByRequestedBy() {
     throw new Error("Failed to read booking items");
   }
 }
+// Reading items that are by each society
+
+export async function ReadItemsInSociety() {
+  // VERIFYING USER
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+    // Fetch booking items from Appwrite
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      [Query.equal("society", [user.id])]
+    );
+
+    // Initialize an array to store the items with itemName
+    const itemsWithDetails = [];
+
+    // Iterate over the fetched documents to construct the items array
+    for (const doc of response.documents) {
+      // Construct the inventory item with the required fields
+      const inventoryItem = {
+        $id: doc.$id,
+        itemName: doc.itemName, // Adding itemName here
+        totalQuantity: doc.totalQuantity, // Assuming these fields exist in the document
+        availableQuantity: doc.availableQuantity,
+        issuedQuantity: doc.totalQuantity-doc.availableQuantity, // Assuming these fields exist in the document
+      };
+
+      // Add the inventory item to the array
+      itemsWithDetails.push(inventoryItem);
+    }
+
+    return itemsWithDetails; // Return the array of inventory items
+
+  } catch (error) {
+    console.error("Error fetching items:", error);
+    throw new Error("Failed to fetch items"); // Handle the error appropriately
+  }
+}
+//Delting the item
+
+export async function UpdateInventoryItem(itemId: string, total: number, available: number){
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+      itemId, // Use itemId to identify the document
+      {
+        availableQuantity: available,
+        totalQuantity: total
+      }
+    );
+  }
+  catch (error) {
+    console.error("Failed to update inventory:", error);
+    throw new Error("Failed to update inventory");
+  }
+}
+
+export async function DeleteInventoryItem(
+  itemId: string,
+) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try {
+    // Deleting the document from the Appwrite database
+    await database.deleteDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId
+    );
+
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!,
+      [Query.equal("itemId", [itemId])]
+    );
+
+    for (const doc of response.documents){
+      await database.deleteDocument(
+        process.env.DATABASE_ID!,
+        process.env.BOOKINGS_COLLECTION_ID!,
+        doc.$id
+        );
+    }
+
+    revalidatePath(`/inventory-check`);
+  } catch (error) {
+    console.error("Failed to delete booking request:", error);
+    throw new Error("Failed to delete booking request");
+  }
+}
+
 
 // Deleting Requests that are requested by "requestedUser ID"
 
