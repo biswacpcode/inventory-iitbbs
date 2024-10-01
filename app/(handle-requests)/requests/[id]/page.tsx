@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { JSX, SVGProps } from "react";
 import { ApproveBookingRequest, DeleteBookingRequest, ReadBookedItembyId, ReadInventoryItemById, ReadUserById } from "@/lib/actions";
@@ -8,18 +8,18 @@ import { Button } from "@/components/ui/button";
 
 // Define the type for the item
 interface InventoryItem {
-    $id: string;
+  $id: string;
   itemImage: string;
   itemName: string;
   availableQuantity: number;
   totalQuantity: number;
   society: string;
   council: string;
-
 }
-interface Requested{
-    bookedQuantity: number;
-    status: string;
+
+interface Requested {
+  bookedQuantity: number;
+  status: string;
 }
 
 interface User {
@@ -32,7 +32,7 @@ export default function Component({ params }: { params: { id: string } }) {
   const [request, setRequest] = useState<Requested | null>(null);
   const [societyName, setSocietyName] = useState<string>("");
   const [councilName, setCouncilName] = useState<string>("");
-  
+  const [isDamaged, setIsDamaged] = useState(false); // New state for checkbox
 
   // Fetch the inventory item details
   useEffect(() => {
@@ -63,7 +63,8 @@ export default function Component({ params }: { params: { id: string } }) {
     bookedQuantity: number
   ) {
     try {
-      await DeleteBookingRequest(requestId, itemId, bookedQuantity);
+      // Send 0 if the item is marked as damaged, otherwise send the booked quantity
+      await DeleteBookingRequest(requestId, itemId, isDamaged ? 0 : bookedQuantity);
     } catch (error) {
       console.error("Failed to delete the request:", error);
     }
@@ -71,41 +72,65 @@ export default function Component({ params }: { params: { id: string } }) {
 
   async function approveItem(requestId: string, statusTo: string) {
     try {
-      await ApproveBookingRequest(requestId, statusTo)
+      await ApproveBookingRequest(requestId, statusTo);
     } catch (error) {
-      console.error('Failed to change status:', error)
+      console.error("Failed to change status:", error);
     }
   }
 
   const Buttons = () => {
     if (!request || !item) return null; // Handle null or undefined request and item safely
-    
-    if (request.status === 'approved') {
+
+    if (request.status === "approved") {
       return (
         <>
           <Link href={`/requests`}>
-            <Button size="sm" className="mt-4 w-full" onClick={() => approveItem(params.id, "issued")} title="Issue">
+            <Button
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => approveItem(params.id, "issued")}
+              title="Issue"
+            >
               Received
             </Button>
           </Link>
+          <div className="mt-4 flex items-center">
+          <input
+                type="checkbox"
+                id="damaged-checkbox"
+                className="mr-2"
+                checked={isDamaged}
+                onChange={() => setIsDamaged(!isDamaged)}
+              />
+              <label htmlFor="damaged-checkbox" className="mr-4">
+                Damaged
+              </label>
+          
           <Link href={`/requests`}>
-            <Button size="sm" className="mt-4 w-full" onClick={() => handleDelete(params.id, item.$id, request.bookedQuantity)}>Refused</Button>
+            
+              {/* Checkbox for damaged item */}
+              
+              <Button
+                size="sm"
+                onClick={() =>
+                  handleDelete(params.id, item.$id, request.bookedQuantity)
+                }
+              >
+                Refused
+              </Button>
+           
           </Link>
+          </div>
         </>
       );
     } else {
-      return (
-        <>
-          
-        </>
-      );
+      return <></>;
     }
   };
-  
 
   // Display a loading state if the item is not yet fetched
   if (!item) {
-    return <Loading/>;
+    return <Loading />;
   }
 
   return (
@@ -130,7 +155,7 @@ export default function Component({ params }: { params: { id: string } }) {
             <BuildingIcon className="w-5 h-5" />
             <span>Council: {councilName}</span>
           </div>
-          <Buttons/>
+          <Buttons />
         </div>
       </div>
     </div>

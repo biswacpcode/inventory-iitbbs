@@ -126,6 +126,7 @@ export default function Component({ params }: { params: { id: string } }) {
             <span>Available: {item.availableQuantity}</span>
             <Separator orientation="vertical" className="h-5" />
             <span>Total: {item.totalQuantity}</span>
+            
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <UsersIcon className="w-5 h-5" />
