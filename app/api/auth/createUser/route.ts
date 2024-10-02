@@ -11,7 +11,7 @@ export async function GET() {
   console.log(user?.id);
 
   if (!user || !user.id) {
-    throw new Error("User not found");
+    return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
   // Get the collection ID from environment variables
