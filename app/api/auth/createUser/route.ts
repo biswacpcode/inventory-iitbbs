@@ -71,13 +71,15 @@ export async function GET() {
   }
 
   // Redirect to the development environment URL
-  const baseUrl = "http://localhost:3000/inventory";
+  const baseUrl = "https://inventory-iitbbs.vercel.app/";
   let redirectUrl = baseUrl;
   
   if (role === "Manager") {
     redirectUrl = `${baseUrl}manager-portal`;
   } else if (role === "Society") {
     redirectUrl = `${baseUrl}items-requests`;
+  }else{
+    redirectUrl = `${baseUrl}inventory`;
   }
   
   return NextResponse.redirect(redirectUrl);
