@@ -45,7 +45,7 @@ export default function Component() {
     if (!isManager) {
       alert("You are unauthorized.");
        // Redirect if unauthorized
-       window.location.href = "http://localhost:3000";
+       window.location.href = "https://inventory-iitbbs.vercel.app/";
     } else {
       fetchRequests(); // Fetch data if authorized
     }
