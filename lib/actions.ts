@@ -58,6 +58,29 @@ export async function CreateInventoryItem(formdata: FormData) {
   }
   redirect("/inventory");
 }
+//Check if authorized role or not
+export async function checkRole(role: string){
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return false; // Or handle the unauthorized case as needed
+  }
+
+  try{
+    const userId = user.id;
+    const us = await ReadUserById(userId);
+    const role_assigned = us.role;
+    if (role_assigned === role)
+      return true;
+    else
+    return false;
+  }catch (error) {
+    console.error("Failed to check role:", error);
+    throw new Error("Failed to check role");
+  }
+
+}
 
 // READING INVENTORY ITEMS
 export async function ReadInventoryItems() {

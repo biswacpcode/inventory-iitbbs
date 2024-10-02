@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router"; // Import router for redirection
 import {
   Table,
   TableHeader,
@@ -10,7 +11,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ReadBookingItems, ReadUserById } from "@/lib/actions";
+import { ReadBookingItems, ReadUserById, checkRole } from "@/lib/actions"; // Import checkRole
 import Link from "next/link";
 import Input from "@/components/ui/input"; // Ensure this is the correct import path for your Input component
 import Loading from "@/components/shared/Loader";
@@ -32,12 +33,25 @@ interface User {
 }
 
 export default function Component() {
+
   const [requests, setRequests] = useState<Request[]>([]);
   const [users, setUsers] = useState<{ [key: string]: User }>({});
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true); // Loading state
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch all booking requests and related users when the component mounts
+  // Check user role and decide whether to fetch data or redirect
+  async function checkAuthorization() {
+    const isManager = await checkRole("Manager");
+    if (!isManager) {
+      alert("You are unauthorized.");
+       // Redirect if unauthorized
+       window.location.href = "http://localhost:3000";
+    } else {
+      fetchRequests(); // Fetch data if authorized
+    }
+  }
+
+  // Fetch all booking requests and related users
   async function fetchRequests() {
     setLoading(true); // Start loading
     const fetchedRequests = await ReadBookingItems(); // Fetch booking items
@@ -63,9 +77,9 @@ export default function Component() {
     setUsers(userMap); // Set the user data in the state
   }
 
-  // Fetch requests on component mount
+  // Fetch requests on component mount after checking authorization
   useEffect(() => {
-    fetchRequests();
+    checkAuthorization(); // Check authorization on component mount
   }, []);
 
   // Filter requests based on the search term (email)
@@ -78,7 +92,7 @@ export default function Component() {
     .reverse();
 
   if (loading) {
-    return <Loading/>; // Show loading while fetching data
+    return <Loading />; // Show loading while fetching data
   }
 
   return (
@@ -114,7 +128,7 @@ export default function Component() {
                 className="border-b border-gray-200 hover:bg-muted"
               >
                 <TableCell>
-                  {users[request.requestedBy]?.email || <Loading/>}
+                  {users[request.requestedBy]?.email || <Loading />}
                 </TableCell>
                 <TableCell>
                   <Link href={`/manager-portal/${request.$id}`}>
@@ -125,13 +139,15 @@ export default function Component() {
                 <TableCell>{request.end}</TableCell>
                 <TableCell>{request.bookedQuantity}</TableCell>
                 <TableCell>
-                  <Badge className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        request.status === 'approved'
-                        ? 'bg-green-200 text-green-800'
-                        : request.status === 'issued'
-                        ? 'bg-blue-200 text-blue-800'
-                        : 'bg-gray-200 text-gray-800'
-                    }`}>
+                  <Badge
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      request.status === "approved"
+                        ? "bg-green-200 text-green-800"
+                        : request.status === "issued"
+                        ? "bg-blue-200 text-blue-800"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
                     {request.status}
                   </Badge>
                 </TableCell>
