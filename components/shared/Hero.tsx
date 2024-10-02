@@ -18,7 +18,7 @@ export default function Component() {
             Streamline Your Inventory Management with Vault IIT BBS
           </h1>
           <p className="text-lg text-primary-foreground mb-8 max-w-2xl">
-            Vault IIT BBS is a powerful inventory management system designed to help the Students' Gymkhana at IIT
+            Vault IIT BBS is a powerful inventory management system designed to help the Students&apos; Gymkhana at IIT
             Bhubaneswar keep track of their assets and resources.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -35,7 +35,7 @@ export default function Component() {
             <div>
               <h2 className="text-3xl font-bold mb-4">About Vault IIT BBS</h2>
               <p className="text-muted-foreground mb-4">
-                Vault IIT BBS is a comprehensive inventory management system developed by the Students' Gymkhana at IIT
+                Vault IIT BBS is a comprehensive inventory management system developed by the Students&apos; Gymkhana at IIT
                 Bhubaneswar. It helps the Gymkhana keep track of all their assets, from sports equipment to event
                 supplies, ensuring efficient resource utilization and better decision-making.
               </p>
