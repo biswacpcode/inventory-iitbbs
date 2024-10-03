@@ -8,10 +8,18 @@ export async function GET() {
   // noStore();
   const { getUser } = getKindeServerSession();
   const user = await getUser();
-  console.log(user?.id);
-
+  
   if (!user || !user.id) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
+  }
+
+  // Extract the email and domain
+  const email = user.email?.toLowerCase() ?? "";
+  const emailDomain = email.split("@")[1];
+
+  // Check if the user's email domain is "iitbbs.ac.in"
+  if (emailDomain !== "iitbbs.ac.in") {
+    return NextResponse.json({ error: 'Unauthorized. Only iitbbs.ac.in emails are allowed.' }, { status: 403 });
   }
 
   // Get the collection ID from environment variables
@@ -27,27 +35,22 @@ export async function GET() {
       collectionId,
       [Query.equal("id", user.id)]
     );
-    console.log("Database query response:", response);
     dbUser = response.documents.length > 0 ? response.documents[0] : null;
   } catch (error) {
     console.error("Error during database query:", error);
     throw new Error("Failed to retrieve user from Appwrite database");
-  } 
+  }
 
   // Determine the user's role based on their email
   let role = "Student"; // Default role
-
-  const email = user.email?.toLowerCase() ?? "";
 
   if (email.includes("biswajit")) {
     role = "Society";
   } else if (email.includes("iitbbs")) {
     role = "Council";
-  }
-  else if (email.includes("22mm01002")){
+  } else if (email.includes("22mm01002")) {
     role = "Manager";
   }
-  
 
   // If the user doesn't exist, create a new user with the determined role
   if (!dbUser) {
@@ -70,17 +73,17 @@ export async function GET() {
     }
   }
 
-  // Redirect to the development environment URL
+  // Redirect to the appropriate portal based on the user's role
   const baseUrl = "https://inventory-iitbbs.vercel.app/";
   let redirectUrl = baseUrl;
-  
+
   if (role === "Manager") {
     redirectUrl = `${baseUrl}manager-portal`;
   } else if (role === "Society") {
     redirectUrl = `${baseUrl}items-requests`;
-  }else{
+  } else {
     redirectUrl = `${baseUrl}inventory`;
   }
-  
+
   return NextResponse.redirect(redirectUrl);
 }
