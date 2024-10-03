@@ -8,30 +8,6 @@ import { useRouter } from "next/navigation";
 
 
 export default function Component() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkAuthorization = async () => {
-      try {
-        const response = await fetch("/api/createUser"); // Your API route
-
-        // Check if the response status is unauthorized (403)
-        if (response.status === 403) {
-          const data = await response.json();
-          alert(data.error); // Show the alert with the error message
-          router.push("/"); // Redirect to home page or any other page
-        } else if (response.status === 200) {
-          // If authorized, do nothing or handle the redirection if needed
-          const data = await response.json();
-          window.location.href = data.redirectUrl; // Redirect based on role
-        }
-      } catch (error) {
-        console.error("Error while checking authorization:", error);
-      }
-    };
-
-    checkAuthorization();
-  }, [router]);
   return (
       
 
