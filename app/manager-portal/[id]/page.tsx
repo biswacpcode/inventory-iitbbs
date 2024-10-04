@@ -1,6 +1,6 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
-import { ApproveBookingRequest, DamagedQuantityUpdate, ReadBookedItembyId, ReadUserById, receivetimeUpdate, returntimeUpdate } from "@/lib/actions";
+import { ApproveBookingRequest, checkRole, DamagedQuantityUpdate, ReadBookedItembyId, ReadUserById, receivetimeUpdate, returntimeUpdate } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -34,31 +34,47 @@ export default function Component({ params }: { params: { id: string } }) {
     const [isDamaged, setIsDamaged] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        async function fetchItem() {
-            try {
-                const fetchedItem: InventoryItem = await ReadBookedItembyId(params.id);
-                setItem(fetchedItem);
-                const fetchRequst: Requested = await ReadBookedItembyId(params.id);
-                setRequest(fetchRequst);
+    // Move the function fetchItem outside of useEffect
+    async function fetchItem() {
+        try {
+            const response = await ReadBookedItembyId(params.id);
 
-                if (fetchedItem) {
-                    const society = await ReadUserById(fetchedItem.society);
-                    const council = await ReadUserById(fetchedItem.council);
-                    setSocietyName(society.lastName);
-                    setCouncilName(council.lastName);
-                }
-            } catch (error) {
-                console.error("Error fetching item or user data", error);
+            // Cast the response to the correct types
+            const fetchedItem: InventoryItem = response;
+            const fetchRequest: Requested = response;
+
+            setItem(fetchedItem);
+            setRequest(fetchRequest);
+
+            if (fetchedItem) {
+                const society = await ReadUserById(fetchedItem.society);
+                const council = await ReadUserById(fetchedItem.council);
+                setSocietyName(society.lastName);
+                setCouncilName(council.lastName);
             }
+        } catch (error) {
+            console.error("Error fetching item or user data", error);
         }
-        fetchItem();
+    }
+
+    async function checkAuthorization() {
+        const isManager = await checkRole("Manager");
+        if (!isManager) {
+            alert("You are unauthorized.");
+            // Redirect if unauthorized
+            window.location.href = "https://inventory-iitbbs.vercel.app/";
+        } else {
+            fetchItem(); // Fetch data if authorized
+        }
+    }
+
+    useEffect(() => {
+        checkAuthorization();
     }, [params.id]);
 
-    async function approveItem(requestId: string, statusTo: string, itemId: string, bookedQuantity:number) {
+    async function approveItem(requestId: string, statusTo: string, itemId: string, bookedQuantity: number) {
         setLoading(true);
-        if (isDamaged)
-            statusTo="damaged&returned";
+        if (isDamaged) statusTo = "damaged&returned";
         try {
             const currentTime = new Date().toISOString();
 
@@ -69,7 +85,7 @@ export default function Component({ params }: { params: { id: string } }) {
 
             // If the status is to "returned", record return time
             if (statusTo === "returned" || statusTo === "damaged&returned") {
-                await returntimeUpdate(requestId, itemId, currentTime, (isDamaged)? 0 : bookedQuantity);
+                await returntimeUpdate(requestId, itemId, currentTime, isDamaged ? 0 : bookedQuantity);
             }
 
             // Update the booking request status
@@ -78,9 +94,9 @@ export default function Component({ params }: { params: { id: string } }) {
             await DamagedQuantityUpdate(itemId, bookedQuantity);
 
             // Redirect after success
-            router.push('/manager-portal');
+            router.push("/manager-portal");
         } catch (error) {
-            console.error('Failed to change status:', error);
+            console.error("Failed to change status:", error);
         } finally {
             setLoading(false);
         }
@@ -89,10 +105,12 @@ export default function Component({ params }: { params: { id: string } }) {
     const Buttons = () => {
         if (!request || !item) return null;
 
-        if (request.status === 'issued') {
+        if (request.status === "issued") {
             return (
                 <>
-                    {loading ? <Loading /> : (
+                    {loading ? (
+                        <Loading />
+                    ) : (
                         <Button
                             size="sm"
                             className="mt-4 w-full"
@@ -104,20 +122,22 @@ export default function Component({ params }: { params: { id: string } }) {
                     )}
                 </>
             );
-        } else if (request.status === 'collected') {
+        } else if (request.status === "collected") {
             return (
                 <>
-                <input
-                type="checkbox"
-                id="damaged-checkbox"
-                className="mr-2"
-                checked={isDamaged}
-                onChange={() => setIsDamaged(!isDamaged)}
-              />
-              <label htmlFor="damaged-checkbox" className="mr-4">
-                Damaged
-              </label>
-                    {loading ? <Loading /> : (
+                    <input
+                        type="checkbox"
+                        id="damaged-checkbox"
+                        className="mr-2"
+                        checked={isDamaged}
+                        onChange={() => setIsDamaged(!isDamaged)}
+                    />
+                    <label htmlFor="damaged-checkbox" className="mr-4">
+                        Damaged
+                    </label>
+                    {loading ? (
+                        <Loading />
+                    ) : (
                         <Button
                             size="sm"
                             className="mt-4 w-full"
@@ -132,12 +152,7 @@ export default function Component({ params }: { params: { id: string } }) {
         } else {
             return (
                 <>
-                    <Button
-                        size="sm"
-                        className="mt-4 w-full"
-                        onClick={() => window.location.reload()}
-                        title="Wait"
-                    >
+                    <Button size="sm" className="mt-4 w-full" onClick={() => window.location.reload()} title="Wait">
                         Wait till I turn to Issued
                     </Button>
                 </>

@@ -425,7 +425,7 @@ export async function ReadItemsInSociety() {
         itemName: doc.itemName, // Adding itemName here
         totalQuantity: doc.totalQuantity, // Assuming these fields exist in the document
         availableQuantity: doc.availableQuantity,
-        issuedQuantity: doc.totalQuantity-doc.availableQuantity, // Assuming these fields exist in the document
+        issuedQuantity: doc.totalQuantity-doc.availableQuantity - doc.damagedQuantity, // Assuming these fields exist in the document
       };
 
       // Add the inventory item to the array
