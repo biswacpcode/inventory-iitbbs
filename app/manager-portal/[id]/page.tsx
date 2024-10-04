@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react";
-import { ApproveBookingRequest, ReadBookedItembyId, ReadUserById, receivetimeUpdate, returntimeUpdate } from "@/lib/actions";
+import { ApproveBookingRequest, DamagedQuantityUpdate, ReadBookedItembyId, ReadUserById, receivetimeUpdate, returntimeUpdate } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,7 @@ export default function Component({ params }: { params: { id: string } }) {
     const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
+    const [isDamaged, setIsDamaged] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -56,6 +57,8 @@ export default function Component({ params }: { params: { id: string } }) {
 
     async function approveItem(requestId: string, statusTo: string, itemId: string, bookedQuantity:number) {
         setLoading(true);
+        if (isDamaged)
+            statusTo="damaged&returned";
         try {
             const currentTime = new Date().toISOString();
 
@@ -65,12 +68,14 @@ export default function Component({ params }: { params: { id: string } }) {
             }
 
             // If the status is to "returned", record return time
-            if (statusTo === "returned") {
-                await returntimeUpdate(requestId, itemId, currentTime, bookedQuantity);
+            if (statusTo === "returned" || statusTo === "damaged&returned") {
+                await returntimeUpdate(requestId, itemId, currentTime, (isDamaged)? 0 : bookedQuantity);
             }
 
             // Update the booking request status
             await ApproveBookingRequest(requestId, statusTo);
+
+            await DamagedQuantityUpdate(itemId, bookedQuantity);
 
             // Redirect after success
             router.push('/manager-portal');
@@ -102,6 +107,16 @@ export default function Component({ params }: { params: { id: string } }) {
         } else if (request.status === 'collected') {
             return (
                 <>
+                <input
+                type="checkbox"
+                id="damaged-checkbox"
+                className="mr-2"
+                checked={isDamaged}
+                onChange={() => setIsDamaged(!isDamaged)}
+              />
+              <label htmlFor="damaged-checkbox" className="mr-4">
+                Damaged
+              </label>
                     {loading ? <Loading /> : (
                         <Button
                             size="sm"

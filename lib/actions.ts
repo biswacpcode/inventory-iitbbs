@@ -5,7 +5,6 @@ import { database, users } from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
-import Alert from "@/components/shared/Alert";
 
 // ADDING NEW INVENTORY ITEM
 export async function CreateInventoryItem(formdata: FormData) {
@@ -110,6 +109,7 @@ export async function ReadInventoryItems() {
       society: doc.society,
       council: doc.council,
       addedBy: doc.addedBy,
+      issuedQuantity: doc.totalQuantity-doc.availableQuantity-doc.damagedQuantity,
     }));
 
     return items;
@@ -140,6 +140,7 @@ export async function ReadInventoryItemById(itemId: string) {
       society: response.society,
       council: response.council,
       addedBy: response.addedBy,
+      damagedQuantity: response.damagedQuantity,
     };
 
     return item;
@@ -550,6 +551,36 @@ export async function DeleteInventoryItem(
     throw new Error("Failed to delete booking request");
   }
 }
+
+//Updataing damaged quantitiy
+export async function DamagedQuantityUpdate(
+  itemId: string,
+  bookedQuantity: number
+) {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return redirect("/");
+  }
+
+  try{
+    const damagedQuantity = bookedQuantity;
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.ITEMS_COLLECTION_ID!, // Ensure this is set to your items collection ID
+      itemId, // Use itemId to identify the document
+      {
+        damagedQuantity: damagedQuantity
+      }
+    );
+  }
+  catch (error) {
+    console.error("Failed to update the damaged quantity:", error);
+    throw new Error("Failed to damaged quantity");
+  }
+}
+  
 
 
 // Deleting Requests that are requested by "requestedUser ID"

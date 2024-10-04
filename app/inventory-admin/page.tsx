@@ -10,10 +10,11 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { ReadItemsInSociety, DeleteInventoryItem, UpdateInventoryItem } from "@/lib/actions"; 
+import { ReadItemsInSociety, DeleteInventoryItem, UpdateInventoryItem, checkRole, ReadInventoryItems } from "@/lib/actions"; 
 import Link from "next/link";
 import Loading from "@/components/shared/Loader";
-import { Check, X } from "lucide-react";
+import { Check, SearchIcon, X } from "lucide-react";
+import Input from "@/components/ui/input";
 
 // Define the type for inventory item
 interface InventoryItem {
@@ -30,20 +31,32 @@ interface InventoryItem {
     availableQuantity?: number;
   }
   
-  export default function InventoryPage() {
+  export default function InventoryAdmin() {
     const [items, setItems] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState<string | null>(null); // Loading state for deletion
     const [editedItems, setEditedItems] = useState<{ [key: string]: EditedItem }>({});
+    const [searchTerm, setSearchTerm] = useState<string>("");
+
+    async function checkAuthorization() {
+      const isManager = await checkRole("Admin");
+      if (!isManager) {
+        alert("You are unauthorized.");
+         // Redirect if unauthorized
+         window.location.href = "https://inventory-iitbbs.vercel.app/";
+      } else {
+        fetchItems(); // Fetch data if authorized
+      }
+    }
   
     // Fetch the inventory items when the component is mounted
     async function fetchItems() {
-      const fetchedItems = await ReadItemsInSociety();
-      setItems(fetchedItems);
+      const fetchedItems = await ReadInventoryItems();
+      setItems(fetchedItems ?? []);
     }
   
     // Use Effect hook to fetch inventory items on mount
     useEffect(() => {
-      fetchItems();
+      checkAuthorization();
     }, []);
   
     // Handle deletion of an item
@@ -110,11 +123,26 @@ async function handleChange(itemId: string) {
         return newItems;
       });
     };
+
+    const filteredItems = items.filter((item) =>
+      item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     
   
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">Inventory Items</h1>
+        <div className="mb-6">
+        <div className="relative">
+          <Input
+            placeholder="Search items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-background shadow-none appearance-none pl-8"
+          />
+          <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        </div>
+      </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -123,11 +151,13 @@ async function handleChange(itemId: string) {
                 <TableHead>Total Quantity</TableHead>
                 <TableHead>Available Quantity</TableHead>
                 <TableHead>Total Issued</TableHead>
+                <TableHead>Damaged</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {[...items].reverse().map((item) => (
+            {filteredItems.length > 0 ? (
+  [...filteredItems].reverse().map((item) => (
                 <TableRow
                   key={item.$id}
                   className="border-b border-gray-200 hover:bg-muted"
@@ -152,6 +182,7 @@ async function handleChange(itemId: string) {
                     </div>
                   </TableCell>
                   <TableCell>{item.issuedQuantity}</TableCell>
+                  <TableCell>{(item.totalQuantity-item.availableQuantity)-item.issuedQuantity}</TableCell>
                   <TableCell className="flex items-center gap-2 w-40 left-5">
                     {loading === item.$id ? (
                       <Loading /> // Placeholder for your loading component
@@ -189,7 +220,13 @@ async function handleChange(itemId: string) {
                     )}
                   </TableCell>
                 </TableRow>
-              ))}
+              ))):(
+                <TableRow>
+    <TableCell colSpan={5} className="text-center">
+      <Loading/>
+    </TableCell>
+  </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { JSX, SVGProps } from "react";
-import { ApproveBookingRequest, DeleteBookingRequest, ReadBookedItembyId, ReadInventoryItemById, ReadUserById } from "@/lib/actions";
+import { ApproveBookingRequest, DamagedQuantityUpdate, DeleteBookingRequest, ReadBookedItembyId, ReadInventoryItemById, ReadUserById } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,9 @@ export default function Component({ params }: { params: { id: string } }) {
     try {
       // Send 0 if the item is marked as damaged, otherwise send the booked quantity
       await DeleteBookingRequest(requestId, itemId, isDamaged ? 0 : bookedQuantity);
+      if (isDamaged){
+        await DamagedQuantityUpdate(itemId, bookedQuantity);
+      }
     } catch (error) {
       console.error("Failed to delete the request:", error);
     }

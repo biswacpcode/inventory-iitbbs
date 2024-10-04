@@ -44,7 +44,7 @@ export default async function Navbar() {
   console.log(role);
 
   function AddItems(): JSX.Element | null {
-    if (role == "Society") {
+    if (role == "Admin") {
       return (
         <Link
           href="/add-item"

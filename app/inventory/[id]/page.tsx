@@ -12,7 +12,8 @@ import  Input  from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { JSX, SVGProps, useState, useEffect } from "react";
-import { ReadInventoryItemById, CreateBookingRequest } from "@/lib/actions";
+import { ReadInventoryItemById, CreateBookingRequest, ReadUserById } from "@/lib/actions";
+import Loading from "@/components/shared/Loader";
 
 export default function Component({ params }: { params: { id: string } }) {
   const [item, setItem] = useState<any>(null);
@@ -24,12 +25,22 @@ export default function Component({ params }: { params: { id: string } }) {
   const [purpose, setPurpose] = useState("");
   const [startTime, setStartTime] = useState(""); // To track start time
   const [endTime, setEndTime] = useState(""); // To track end time
+  const [societyName, setSocietyName] = useState<string>("");
+    const [councilName, setCouncilName] = useState<string>("");
 
   useEffect(() => {
     async function fetchItem() {
       const fetchedItem = await ReadInventoryItemById(params.id);
       setItem(fetchedItem);
+
+      if (fetchedItem) {
+        const society = await ReadUserById(fetchedItem.society);
+        const council = await ReadUserById(fetchedItem.council);
+        setSocietyName(society.lastName);
+        setCouncilName(council.lastName);
     }
+    }
+    
 
     const today = new Date();
     const date = today.toISOString().split("T")[0];
@@ -106,7 +117,7 @@ export default function Component({ params }: { params: { id: string } }) {
     setZyada(isAnyFieldEmpty);
   };
 
-  if (!item) return <div>Loading...</div>;
+  if (!item) return <Loading/>;
 
   return (
     <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
@@ -125,16 +136,18 @@ export default function Component({ params }: { params: { id: string } }) {
             <PackageIcon className="w-5 h-5" />
             <span>Available: {item.availableQuantity}</span>
             <Separator orientation="vertical" className="h-5" />
+            <span>Damaged: {(item.damagedQuantity) ? item.damagedQuantity : 0}</span>
+            <Separator orientation="vertical" className="h-5" />
             <span>Total: {item.totalQuantity}</span>
             
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <UsersIcon className="w-5 h-5" />
-            <span>Society: {item.society}</span>
+            <span>Society: {societyName}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <BuildingIcon className="w-5 h-5" />
-            <span>Council: {item.society}</span>
+            <span>Council: {councilName}</span>
           </div>
         </div>
       </div>
