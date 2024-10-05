@@ -84,36 +84,34 @@ interface InventoryItem {
     };
   
     // Handle saving changes
-    // Handle saving changes
-async function handleChange(itemId: string) {
-  setLoading(itemId); // Set loading for the specific item
-  const item = items.find((i) => i.$id === itemId);
-
-  if (!item) {
-    console.error("Item not found");
-    return;
-  }
-
-  const totalQuantity = editedItems[itemId]?.totalQuantity ?? item.totalQuantity;
-  const availableQuantity = editedItems[itemId]?.availableQuantity ?? item.availableQuantity;
-
-  try {
-    await UpdateInventoryItem(itemId, totalQuantity, availableQuantity);
-    fetchItems(); // Refetch items after successful update
-
-    // After saving, reset the edited item to show the delete button
-    setEditedItems((prev) => {
-      const newItems = { ...prev };
-      delete newItems[itemId]; // Remove the edited state for this item
-      return newItems;
-    });
-  } catch (error) {
-    console.error("Failed to update the item:", error);
-  } finally {
-    setLoading(null); // Reset loading state
-  }
-}
-
+    async function handleChange(itemId: string) {
+      setLoading(itemId); // Set loading for the specific item
+      const item = items.find((i) => i.$id === itemId);
+    
+      if (!item) {
+        console.error("Item not found");
+        return;
+      }
+    
+      const totalQuantity = editedItems[itemId]?.totalQuantity ?? item.totalQuantity;
+      const availableQuantity = editedItems[itemId]?.availableQuantity ?? item.availableQuantity;
+    
+      try {
+        await UpdateInventoryItem(itemId, totalQuantity, availableQuantity);
+        fetchItems(); // Refetch items after successful update
+    
+        // After saving, reset the edited item to show the delete button
+        setEditedItems((prev) => {
+          const newItems = { ...prev };
+          delete newItems[itemId]; // Remove the edited state for this item
+          return newItems;
+        });
+      } catch (error) {
+        console.error("Failed to update the item:", error);
+      } finally {
+        setLoading(null); // Reset loading state
+      }
+    }
   
     // Handle canceling changes
     const handleCancelChanges = (itemId: string) => {
@@ -123,15 +121,43 @@ async function handleChange(itemId: string) {
         return newItems;
       });
     };
-
+  
     const filteredItems = items.filter((item) =>
       item.itemName.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Function to download data as CSV
+    const handleDownloadCSV = () => {
+      const headers = ["Item Name", "Total Quantity", "Available Quantity", "Issued Quantity", "Damaged"];
+      const csvRows = [
+        headers.join(","), // Join headers with commas
+        ...items.map(item => [
+          item.itemName,
+          item.totalQuantity,
+          item.availableQuantity,
+          item.issuedQuantity,
+          item.totalQuantity - item.availableQuantity - item.issuedQuantity, // Damaged quantity
+        ].join(",")) // Join each row's data with commas
+      ].join("\n"); // Join rows with new lines
+    
+      const blob = new Blob([csvRows], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('hidden', '');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'inventory_data.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
     
   
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Inventory Items</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold mb-6">Inventory Items</h1>
+          <Button onClick={handleDownloadCSV}>Download CSV</Button>
+        </div>
         <div className="mb-6">
         <div className="relative">
           <Input
@@ -157,7 +183,7 @@ async function handleChange(itemId: string) {
             </TableHeader>
             <TableBody>
             {filteredItems.length > 0 ? (
-  [...filteredItems].reverse().map((item) => (
+              [...filteredItems].reverse().map((item) => (
                 <TableRow
                   key={item.$id}
                   className="border-b border-gray-200 hover:bg-muted"
@@ -218,12 +244,13 @@ async function handleChange(itemId: string) {
                     )}
                   </TableCell>
                 </TableRow>
-              ))):(
+              ))
+              ) : (
                 <TableRow>
-    <TableCell colSpan={5} className="text-center">
-      <Loading/>
-    </TableCell>
-  </TableRow>
+                  <TableCell colSpan={6} className="text-center">
+                    No matching items found.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
@@ -231,6 +258,7 @@ async function handleChange(itemId: string) {
       </div>
     );
   }
+
   
   // SVG Trash Icon Component
   function TrashIcon(props: SVGProps<SVGSVGElement>) {
