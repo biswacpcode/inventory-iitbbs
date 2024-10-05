@@ -5,6 +5,7 @@ import { database, users } from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
+import { Socket } from "dgram";
 
 // ADDING NEW INVENTORY ITEM
 export async function CreateInventoryItem(formdata: FormData) {
@@ -200,9 +201,46 @@ function formatDateTime(isoString: string): string {
   return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
 }
 
+//Read all the Requests irrespective of user for admin
+export async function ReadAllBookingItems() {
+  try {
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!
+    );
+
+    const itemsWithNames = await Promise.all(
+      response.documents.map(async (doc) => {  // Corrected the filter syntax
+        const inventoryItem = await ReadInventoryItemById(doc.itemId);
+        const start = formatDateTime(doc.start);
+        const end = formatDateTime(doc.end);
+
+        return {
+          $id: doc.$id,
+          itemId: doc.itemId,
+          itemName: inventoryItem.itemName,
+          start: start,
+          end: end,
+          purpose: doc.purpose,
+          bookedQuantity: doc.bookedQuantity,
+          requestedBy: doc.requestedUser,
+          status: doc.status,
+          receivedAt: (doc.receivedAt)?formatDateTime(doc.receivedAt):"not collected yet",
+          returnedAt: (doc.receivedAt)? (doc.returnedAt) ? formatDateTime(doc.returnedAt): "not returned yet":"not collected yet"
+        };
+      })
+    );
+
+    return itemsWithNames;
+  } catch (error) {
+    console.error("Failed to read all booking items:", error);
+    throw new Error("Failed to read all booking items");
+  }
+}
 
 
-// Read all the Requests irrespective of user
+
+// Read all the Requests irrespective of user for manager
 
 export async function ReadBookingItems() {
   try {

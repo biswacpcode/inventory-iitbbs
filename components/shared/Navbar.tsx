@@ -38,7 +38,10 @@ export default async function Navbar() {
     link = "/items-requests";
   } else if (role == "Manager") {
     link = "/manager-portal";
-  } else {
+  }else if (role === "Admin"){
+    link = "/requests-admin";
+  }
+   else {
     link = "/requests";
   }
 

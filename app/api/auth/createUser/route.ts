@@ -83,7 +83,9 @@ export async function GET() {
     redirectUrl = `${baseUrl}manager-portal`;
   } else if (role === "Society") {
     redirectUrl = `${baseUrl}items-requests`;
-  } else {
+  } else if (role === "Admin"){
+    redirectUrl = `${baseUrl}requests-admin`;
+  }else {
     redirectUrl = `${baseUrl}inventory`;
   }
 
