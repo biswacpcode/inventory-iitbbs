@@ -23,22 +23,23 @@ import { useEffect, useState } from "react";
 import { checkRole, CreateInventoryItem, fetchUsersByRole } from "@/lib/actions";
 import { useRouter } from "next/router";
 
-export default function Component() {
-  let societies, councils;
+export default async function Component() {
+  
 
-  // Check authorization and fetch users after the component mounts
-  useEffect(() => {
-    const checkAuthorizationAndFetchUsers = async () => {
-      const isAdmin = await checkRole("Admin");
+  const checkAuth = async () => {
+    const isAdmin = await checkRole("Admin");
       if (!isAdmin) {
         alert("You are unauthorized.");
         window.location.href = "https://inventory-iitbbs.vercel.app/";
-      } else {
-        societies = await fetchUsersByRole("Society");
-        councils = await fetchUsersByRole("Council");
       }
-    };
-    checkAuthorizationAndFetchUsers();
+  }
+  const societies = await fetchUsersByRole("Society");
+  const councils = await fetchUsersByRole("Council");
+
+  // Check authorization and fetch users after the component mounts
+  useEffect(() => {
+    
+    checkAuth();
   }, []);
 
   return (
