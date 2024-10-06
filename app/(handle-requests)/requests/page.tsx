@@ -31,6 +31,7 @@ interface Request {
 
 export default function Component() {
   const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Fetch the requests initially when the component is mounted
   async function fetchRequests() {
@@ -49,6 +50,7 @@ export default function Component() {
     itemId: string,
     bookedQuantity: number
   ) {
+    setLoading(true);
     try {
       await DeleteBookingRequest(requestId, itemId, bookedQuantity);
       // Refetch requests after successful deletion
@@ -105,7 +107,7 @@ export default function Component() {
                   </Badge>
                 </TableCell>
                 <TableCell className="flex items-center gap-2">
-                  {request.status!=="collected" && request.status!=="returned"&&request.status!=="damaged and returned" ? (
+                  {request.status!=="collected" && request.status!=="returned"&&request.status!=="damaged and returned" && (!(loading))? (
                     <Button
                     variant="outline"
                     size="icon"
