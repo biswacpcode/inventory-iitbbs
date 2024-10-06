@@ -1,14 +1,15 @@
 'use client'
 import { ReadBookingItemsByRequestedTo, ApproveBookingRequest } from '@/lib/actions'
 import { useEffect, useState, SVGProps } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import Loading from '@/components/shared/Loader'
 
 export default function Page() {
   const [items, setItems] = useState<any[]>([])
-
+  const searchParams = useSearchParams()
+  
   // Fetch requests using useEffect
   useEffect(() => {
     async function fetchItems() {
@@ -22,6 +23,23 @@ export default function Page() {
 
     fetchItems()
   }, []) // Empty dependency array means this runs once after the initial render
+
+  // Handle automatic approval from URL
+  useEffect(() => {
+    const approveId = searchParams.get('approveId')
+
+    if (approveId) {
+      approveItem(approveId, 'approved')
+    }
+  }, [searchParams]) // Trigger when the searchParams change
+
+  useEffect(() => {
+    const rejectId = searchParams.get('rejectId')
+
+    if (rejectId) {
+      approveItem(rejectId, 'rejected')
+    }
+  }, [searchParams])
 
   // Function to approve an item
   async function approveItem(requestId: string, statusTo: string) {

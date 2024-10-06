@@ -27,6 +27,8 @@ export async function CreateInventoryItem(formdata: FormData) {
   const society = formdata.get("society") as string;
   const council = formdata.get("council") as string;
   const defaultStatus = formdata.get("defaultStatus") as string;
+  const maxQuanitity = parseInt(formdata.get("allowed-quantity") as string, 10);
+  const maxTime = parseInt(formdata.get("allowed-time") as string, 10);
 
   let imageUrl = '';
 
@@ -66,7 +68,9 @@ export async function CreateInventoryItem(formdata: FormData) {
         society,
         council,
         defaultStatus,
-        itemImage: imageUrl,                 // Store the image URL in the database
+        itemImage: imageUrl,// Store the image URL in the database
+        maxQuanitity,
+        maxTime,                 
         addedBy: user.id                  // Use the correct user ID property
       }
     );

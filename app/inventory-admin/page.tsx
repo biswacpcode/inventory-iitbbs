@@ -189,7 +189,8 @@ interface InventoryItem {
                   className="border-b border-gray-200 hover:bg-muted"
                 >
                   <TableCell>
-                      {item.itemName}
+                    {item.itemName}
+                      
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center">

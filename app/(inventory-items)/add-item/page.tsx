@@ -57,13 +57,12 @@ export default async function Component() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description" className="text-sm font-medium">
-              Stock In & Price
+              Stock Register Entry
             </Label>
-            <Textarea
+            <Input
               id="description"
               name="description"
-              rows={4}
-              placeholder="Enter item Stock In & Price"
+              placeholder="Enter item Stock Register Entry"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -90,6 +89,33 @@ export default async function Component() {
                 name="available-quantity"
                 type="number"
                 placeholder="Enter available quantity"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="allowed-quantity" className="text-sm font-medium">
+                Maximum Allowed Quantity
+              </Label>
+              <Input
+                id="allowed-quantity"
+                name="allowed-quantity"
+                type="number"
+                placeholder="Enter maximum quantity"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label
+                htmlFor="allowed-time"
+                className="text-sm font-medium"
+              >
+                Maximum Allowed Time(in days)
+              </Label>
+              <Input
+                id="allowed-time"
+                name="allowed-time"
+                type="number"
+                placeholder="Enter maximum allowed time"
               />
             </div>
           </div>
