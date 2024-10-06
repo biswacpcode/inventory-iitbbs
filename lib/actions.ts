@@ -51,6 +51,7 @@ export async function CreateInventoryItem(formdata: FormData) {
       throw new Error("Failed to upload image to Appwrite storage");
     }
   } else {
+    imageUrl = 'https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg';
     console.warn("No image file provided or file is empty.");
   }
 
