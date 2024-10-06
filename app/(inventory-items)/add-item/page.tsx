@@ -1,13 +1,13 @@
-"use client";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import Input from "@/components/ui/input";
+import  Input from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -19,28 +19,15 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
-import { checkRole, CreateInventoryItem, fetchUsersByRole } from "@/lib/actions";
-import { unstable_noStore } from "next/cache";
+import { CreateInventoryItem, fetchUsersByRole } from "@/lib/actions";
+import { unstable_noStore as noStore } from "next/cache";
 
 export default async function Component() {
-  unstable_noStore()
-
-  const checkAuth = async () => {
-    const isAdmin = await checkRole("Admin");
-      if (!isAdmin) {
-        alert("You are unauthorized.");
-        window.location.href = "https://inventory-iitbbs.vercel.app/";
-      }
-  }
+  noStore()
+  // FETCH USERS BY ROLE
   const societies = await fetchUsersByRole("Society");
   const councils = await fetchUsersByRole("Council");
 
-  // Check authorization and fetch users after the component mounts
-  useEffect(() => {
-    
-    checkAuth();
-  }, []);
 
   return (
     <Card className="max-w-2xl mx-auto p-6 sm:p-8 md:p-10">
@@ -65,7 +52,7 @@ export default async function Component() {
               <Label htmlFor="image" className="text-sm font-medium">
                 Image
               </Label>
-              <Input id="image" type="file" name="itemImage" accept="image/*" />
+              <Input id="image" type="file" name = "itemImage" accept="image/*"/>
             </div>
           </div>
           <div className="grid gap-2">
@@ -92,7 +79,10 @@ export default async function Component() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="available-quantity" className="text-sm font-medium">
+              <Label
+                htmlFor="available-quantity"
+                className="text-sm font-medium"
+              >
                 Available Quantity
               </Label>
               <Input
@@ -115,11 +105,11 @@ export default async function Component() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Societies</SelectLabel>
-                    {societies.map((society) => (
-                      <SelectItem key={society.$id} value={society.id}>
-                        {society.firstName} {society.lastName}
-                      </SelectItem>
-                    ))}
+                    {
+                      societies.map((society) => (
+                        <SelectItem key={society.$id} value={society.id}>{society.firstName} {society.lastName}</SelectItem>
+                      ))
+                    }
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -135,11 +125,11 @@ export default async function Component() {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Councils</SelectLabel>
-                    {councils.map((council) => (
-                      <SelectItem key={council.$id} value={council.id}>
-                        {council.firstName} {council.lastName}
-                      </SelectItem>
-                    ))}
+                    {
+                      councils.map((council) => (
+                        <SelectItem key={council.$id} value={council.id}>{council.firstName} {council.lastName}</SelectItem>
+                      ))
+                    }
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -150,21 +140,26 @@ export default async function Component() {
               Default Request Status
             </Label>
             <Select name="defaultStatus">
-              <SelectTrigger>
-                <SelectValue placeholder="Select default status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Statuses</SelectLabel>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select default status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Statuses</SelectLabel>
+                    <SelectItem value = "pending">Pending</SelectItem>
+                    <SelectItem value = "approved">Approved</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
           </div>
           <Button>Save Item</Button>
         </form>
+          
+
       </CardContent>
+      {/* <CardFooter className="flex justify-end">
+        
+      </CardFooter> */}
     </Card>
   );
 }
