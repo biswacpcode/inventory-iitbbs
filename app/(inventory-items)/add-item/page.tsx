@@ -24,9 +24,7 @@ import { checkRole, CreateInventoryItem, fetchUsersByRole } from "@/lib/actions"
 import { useRouter } from "next/router";
 
 export default function Component() {
-  const [societies, setSocieties] = useState([]);
-  const [councils, setCouncils] = useState([]);
-
+  let societies, councils;
 
   // Check authorization and fetch users after the component mounts
   useEffect(() => {
@@ -36,10 +34,8 @@ export default function Component() {
         alert("You are unauthorized.");
         window.location.href = "https://inventory-iitbbs.vercel.app/";
       } else {
-        const fetchedSocieties = await fetchUsersByRole("Society");
-        const fetchedCouncils = await fetchUsersByRole("Council");
-        setSocieties(fetchedSocieties);
-        setCouncils(fetchedCouncils);
+        societies = await fetchUsersByRole("Society");
+        councils = await fetchUsersByRole("Council");
       }
     };
     checkAuthorizationAndFetchUsers();
