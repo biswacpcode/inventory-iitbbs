@@ -212,7 +212,7 @@ export default function Component({ params }: { params: { id: string } }) {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <input type="hidden" name="itemId" value={item.$id} />
-                <input type="hidden" name="requestedTo" value={item.addedBy} />
+                <input type="hidden" name="requestedTo" value={item.society} />
                 <Label htmlFor="start-date">Start Date</Label>
                 <Input
                   type="date"
