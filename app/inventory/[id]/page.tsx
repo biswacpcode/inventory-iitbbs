@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import  Input  from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { JSX, SVGProps, useState, useEffect } from "react";
+import { JSX, SVGProps, useState, useEffect, FormEvent } from "react";
 import { ReadInventoryItemById, CreateBookingRequest, ReadUserById } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 
@@ -23,10 +23,12 @@ export default function Component({ params }: { params: { id: string } }) {
   const [startDate, setStartDate] = useState("");
   const [endDateMin, setEndDateMin] = useState("");
   const [purpose, setPurpose] = useState("");
+  const [purLength, setPurLength] = useState(0);
   const [startTime, setStartTime] = useState(""); // To track start time
   const [endTime, setEndTime] = useState(""); // To track end time
   const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
+    const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     async function fetchItem() {
@@ -102,8 +104,10 @@ export default function Component({ params }: { params: { id: string } }) {
   const handlePurposeChange = (e: any) => {
     const purposeValue = e.target.value;
     setPurpose(purposeValue);
+    setPurLength(purposeValue.length);
     checkEmptyFields(startDate, startTime, endDateMin, endTime, purposeValue);
   };
+  
 
   const checkEmptyFields = (
     startDate: string,
@@ -117,7 +121,50 @@ export default function Component({ params }: { params: { id: string } }) {
     setZyada(isAnyFieldEmpty);
   };
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // Validate form fields if necessary
+    if (zyada || purLength === 0) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+
+      const bookedQuantity = parseInt(
+        (e.currentTarget.elements.namedItem("bookedQuantity") as HTMLInputElement).value,
+        10
+      );
+      // Prepare form data
+      const formData = new FormData();
+      formData.append("itemId", item.$id);
+      formData.append("requestedTo", item.addedBy);
+      formData.append("startDate", startDate);
+      formData.append("startTime", startTime);
+      formData.append("endDate", endDateMin);
+      formData.append("endTime", endTime);
+      formData.append("bookedQuantity", bookedQuantity.toString());
+      formData.append("purpose", purpose);
+      formData.append("status", item.defaultStatus);
+
+      // Call the CreateBookingRequest function
+      await CreateBookingRequest(formData);
+
+      // Optionally, you can navigate the user or show a success message here
+      // For example:
+      // router.push("/success");
+    } catch (error) {
+      console.error("Error creating booking request:", error);
+      // Handle error appropriately (e.g., show a notification)
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!item) return <Loading/>;
+  console.log(item.itemImage);
 
   return (
     <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
@@ -161,7 +208,7 @@ export default function Component({ params }: { params: { id: string } }) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4" action={CreateBookingRequest}>
+          <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <input type="hidden" name="itemId" value={item.$id} />
@@ -203,7 +250,7 @@ export default function Component({ params }: { params: { id: string } }) {
                   type="time"
                   id="end-time"
                   name="endTime"
-                  min={currentDate === startDate ? currentTime : ""}
+                  min={endDateMin === startDate ? currentTime : ""}
                   onChange={handleEndTimeChange}
                 />
               </div>
@@ -228,6 +275,8 @@ export default function Component({ params }: { params: { id: string } }) {
                 onChange={handlePurposeChange}
               />
             </div>
+            {isLoading ?
+            <Loading/> :
             <Button
               size="lg"
               className="w-full"
@@ -235,10 +284,12 @@ export default function Component({ params }: { params: { id: string } }) {
                 cursor: zyada ? "not-allowed" : "pointer",
                 pointerEvents: zyada ? "none" : "auto",
               }}
-              disabled={zyada}
+              disabled={zyada || purLength===0}
             >
-              Book Item
+              Reserve Item
             </Button>
+            }
+            
           </form>
         </CardContent>
       </Card>

@@ -74,10 +74,11 @@ export default function InventoryPage() {
           filteredItems.map((product) => (
             <div
               key={product.$id}
-              className="bg-background rounded-lg overflow-hidden shadow-lg transition-all hover:shadow-xl border-2 border-white"
+              className="bg-background rounded-lg overflow-hidden shadow-lg transition-all hover:shadow-2xl hover:scale-105 border-2 border-white"
+              style={{animation:0.3}}
             >
               <img
-                src="https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg"
+                src={product.itemImage}
                 alt={product.itemImage}
                 width={400}
                 height={300}
@@ -100,7 +101,7 @@ export default function InventoryPage() {
                 </div>
                 <Link href={`/inventory/${product.$id}`}>
                   <Button size="sm" className="mt-4 w-full">
-                    Book
+                    Reserve
                   </Button>
                 </Link>
               </div>

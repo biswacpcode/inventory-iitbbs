@@ -1,7 +1,7 @@
 "use server";
 
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { database, users } from "@/lib/appwrite.config";
+import { database, users , storage} from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Query } from "node-appwrite";
@@ -14,31 +14,50 @@ export async function CreateInventoryItem(formdata: FormData) {
   const user = await getUser();
 
   if (!user) {
-    return redirect("/");
+    redirect("/");
+    return;
   }
 
   // EXTRACTING FORM DATA
   const itemName = formdata.get("name") as string;
-  const itemImage =
-    "https://img.freepik.com/free-vector/illustration-gallery-icon_53876-27002.jpg"; // Placeholder, handle the actual image upload
+  const itemImage = formdata.get("itemImage") as File; // Corrected key
   const totalQuantity = parseInt(formdata.get("total-quantity") as string, 10);
-  const availableQuantity = parseInt(
-    formdata.get("available-quantity") as string,
-    10
-  );
+  const availableQuantity = parseInt(formdata.get("available-quantity") as string, 10);
   const description = formdata.get("description") as string;
   const society = formdata.get("society") as string;
   const council = formdata.get("council") as string;
+  const defaultStatus = formdata.get("defaultStatus") as string;
 
-  // You might want to handle the file upload separately before this step if there is an image to be uploaded
-  //   console.log({ itemName, itemImage, totalQuantity, availableQuantity, description, society, council });
+  let imageUrl = '';
 
+  // Handle file upload to Appwrite Storage
+  if (itemImage && itemImage.size > 0) {
+    try {
+      const response = await storage.createFile(
+        process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+        'unique()',                // Unique file ID
+        itemImage                  // The file to be uploaded
+      );
+
+      // After uploading, construct the URL to access the file
+      imageUrl = `${process.env.NEXT_PUBLIC_ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+      
+      console.log("Image uploaded successfully:", imageUrl);
+      
+    } catch (error) {
+      console.error("Error uploading file to Appwrite storage:", error);
+      throw new Error("Failed to upload image to Appwrite storage");
+    }
+  } else {
+    console.warn("No image file provided or file is empty.");
+  }
+
+  // Create a new document in Appwrite database
   try {
-    // Create a new inventory item in Appwrite
     await database.createDocument(
-      process.env.DATABASE_ID!,
-      process.env.ITEMS_COLLECTION_ID!, // Ensure these are set in your .env.local
-      "unique()", // Generates a unique document ID
+      process.env.DATABASE_ID!,              // Your Appwrite database ID
+      process.env.ITEMS_COLLECTION_ID!,      // Your collection ID
+      'unique()',                            // Unique document ID
       {
         itemName,
         description,
@@ -46,18 +65,23 @@ export async function CreateInventoryItem(formdata: FormData) {
         availableQuantity,
         society,
         council,
-        itemImage,
-        addedBy: user.id, // Associate item with the current user
+        defaultStatus,
+        itemImage: imageUrl,                 // Store the image URL in the database
+        addedBy: user.id                  // Use the correct user ID property
       }
     );
 
-    revalidatePath(`/add-item`);
+    console.log("Inventory item created successfully.");
+    revalidatePath('/add-item');
   } catch (error) {
     console.error("Failed to create inventory item:", error);
     throw new Error("Failed to create inventory item");
   }
+
   redirect("/inventory");
 }
+//Uploading image
+
 //Check if authorized role or not
 export async function checkRole(role: string){
   const { getUser } = getKindeServerSession();
@@ -142,6 +166,7 @@ export async function ReadInventoryItemById(itemId: string) {
       council: response.council,
       addedBy: response.addedBy,
       damagedQuantity: response.damagedQuantity,
+      defaultStatus: response.defaultStatus,
     };
 
     return item;
@@ -210,7 +235,7 @@ export async function ReadAllBookingItems() {
     );
 
     const itemsWithNames = await Promise.all(
-      response.documents.map(async (doc) => {  // Corrected the filter syntax
+      response.documents.map(async (doc) => {  
         const inventoryItem = await ReadInventoryItemById(doc.itemId);
         const start = formatDateTime(doc.start);
         const end = formatDateTime(doc.end);
@@ -340,6 +365,7 @@ export async function CreateBookingRequest(formdata: FormData) {
   const bookedQuantity = parseInt(formdata.get("bookedQuantity") as string, 10);
   const purpose = formdata.get("purpose") as string;
   const requestedTo = formdata.get("requestedTo") as string;
+  const status = formdata.get("status") as string;
 
   // COMBINE DATE AND TIME INTO ISO STRING
   const start = new Date(`${startDate}T${startTime}`).toISOString();
@@ -359,7 +385,7 @@ export async function CreateBookingRequest(formdata: FormData) {
         bookedQuantity,
         requestedUser: user.id, // Associate booking with the current user
         requestedTo,
-        status: "pending", // Set the initial status
+        status , // Set the initial status
       }
     );
     const newAvailableQuantity = item.availableQuantity - bookedQuantity;

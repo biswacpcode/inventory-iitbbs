@@ -1,8 +1,3 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/3PYYakh1PZK
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import {
   Card,
   CardHeader,
@@ -45,7 +40,7 @@ export default async function Component() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={CreateInventoryItem} className="grid gap-6">
+        <form action={CreateInventoryItem} className="grid gap-6" encType="multipart/form-data">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="name" className="text-sm font-medium">
@@ -57,7 +52,7 @@ export default async function Component() {
               <Label htmlFor="image" className="text-sm font-medium">
                 Image
               </Label>
-              <Input id="image" type="file" />
+              <Input id="image" type="file" name = "itemImage" accept="image/*"/>
             </div>
           </div>
           <div className="grid gap-2">
@@ -139,6 +134,23 @@ export default async function Component() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="description" className="text-sm font-medium">
+              Default Request Status
+            </Label>
+            <Select name="defaultStatus">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select default status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Statuses</SelectLabel>
+                    <SelectItem value = "pending">Pending</SelectItem>
+                    <SelectItem value = "approved">Approved</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
           </div>
           <Button>Save Item</Button>
         </form>
