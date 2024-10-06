@@ -98,7 +98,7 @@ export default async function Navbar() {
                 Home
               </Link>
               <Link
-                href="/profile"
+                href="/requests"
                 className="flex w-full items-center py-2 text-base"
                 prefetch={false}
               >
@@ -193,6 +193,9 @@ export default async function Navbar() {
         )}
         <ModeToggle />
       </nav>
+      
+      
     </header>
+    
   );
 }
