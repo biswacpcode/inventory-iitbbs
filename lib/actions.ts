@@ -42,7 +42,7 @@ export async function CreateInventoryItem(formdata: FormData) {
       );
 
       // After uploading, construct the URL to access the file
-      imageUrl = `${process.env.ENDPOINT}/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+      imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
       
       console.log("Image uploaded successfully:", imageUrl);
       
