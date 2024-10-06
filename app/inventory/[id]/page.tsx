@@ -202,7 +202,7 @@ export default function Component({ params }: { params: { id: string } }) {
       {/* ---------------------- BOOKING DETAILS ---------------------- */}
       <Card>
         <CardHeader>
-          <CardTitle>Book Issue Item</CardTitle>
+          <CardTitle>Reserve Item</CardTitle>
           <CardDescription>
             Select the dates and quantity you need.
           </CardDescription>
