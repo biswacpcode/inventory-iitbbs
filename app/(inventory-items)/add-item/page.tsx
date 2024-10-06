@@ -19,12 +19,12 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { checkRole, CreateInventoryItem, fetchUsersByRole } from "@/lib/actions";
-import { useRouter } from "next/router";
+import { unstable_noStore } from "next/cache";
 
 export default async function Component() {
-  
+  unstable_noStore()
 
   const checkAuth = async () => {
     const isAdmin = await checkRole("Admin");
