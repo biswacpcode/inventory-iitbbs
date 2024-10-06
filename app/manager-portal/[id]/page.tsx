@@ -124,7 +124,7 @@ export default function Component({ params }: { params: { id: string } }) {
             );
         } else if (request.status === "collected") {
             return (
-                <>
+                <div className="mt-4 flex items-center">
                     <input
                         type="checkbox"
                         id="damaged-checkbox"
@@ -147,7 +147,7 @@ export default function Component({ params }: { params: { id: string } }) {
                             Returned
                         </Button>
                     )}
-                </>
+                </div>
             );
         } else {
             return (

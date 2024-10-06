@@ -57,13 +57,13 @@ export default async function Component() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description" className="text-sm font-medium">
-              Description
+              Stock In & Price
             </Label>
             <Textarea
               id="description"
               name="description"
               rows={4}
-              placeholder="Enter item description"
+              placeholder="Enter item Stock In & Price"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
