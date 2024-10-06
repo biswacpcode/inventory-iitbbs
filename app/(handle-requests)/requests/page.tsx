@@ -16,6 +16,7 @@ import {
   DeleteBookingRequest,
 } from "@/lib/actions";
 import Link from "next/link";
+import Loading from "@/components/shared/Loader";
 
 interface Request {
   $id: string;
@@ -124,6 +125,10 @@ export default function Component() {
                   ):(
                     <></>
                   )}
+                  {loading?
+                  <Loading/> :
+                  <></>
+                  }
                   
                 </TableCell>
               </TableRow>
