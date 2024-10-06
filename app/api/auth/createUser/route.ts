@@ -51,8 +51,14 @@ export async function GET() {
   } else if (email.includes("22mm01002")) {
     role = "Manager";
   }
+  if (email.includes("secy"))
+    role="Society";
+  if (email.includes("gsec"))
+    role="Council";
   if (email === "secyweb.sg@iitbbs.ac.in" || email ==="president.sg@iitbbs.ac.in")
     role="Admin";
+
+
 
   // If the user doesn't exist, create a new user with the determined role
   if (!dbUser) {
