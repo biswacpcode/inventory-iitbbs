@@ -140,7 +140,7 @@ export default function Component({ params }: { params: { id: string } }) {
       // Prepare form data
       const formData = new FormData();
       formData.append("itemId", item.$id);
-      formData.append("requestedTo", item.addedBy);
+      formData.append("requestedTo", item.society);
       formData.append("startDate", startDate);
       formData.append("startTime", startTime);
       formData.append("endDate", endDateMin);
