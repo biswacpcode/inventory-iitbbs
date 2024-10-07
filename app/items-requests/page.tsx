@@ -1,13 +1,15 @@
 'use client'
 import { ReadBookingItemsByRequestedTo, ApproveBookingRequest } from '@/lib/actions'
-import { useEffect, useState, SVGProps } from 'react'
+import { useEffect, useState, SVGProps, Suspense } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Loading from '@/components/shared/Loader'
+import { useSearchParams } from 'next/navigation'
 
 export default function Page() {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<any[]>([]);
+  const searchParams = useSearchParams();
 
   // Fetch requests using useEffect
   useEffect(() => {
@@ -21,74 +23,87 @@ export default function Page() {
     }
 
     fetchItems()
-  }, []) // Empty dependency array means this runs once after the initial render
+  }, []);
 
-  // Function to approve an item
+  // Automatically approve or reject based on search params
+  useEffect(() => {
+    const approveId = searchParams.get('approveId');
+    const rejectId = searchParams.get('rejectId');
+
+    if (approveId) {
+      approveItem(approveId, 'approved');
+    }
+    if (rejectId) {
+      approveItem(rejectId, 'rejected');
+    }
+  }, [searchParams]);
+
+  // Function to approve or reject an item
   async function approveItem(requestId: string, statusTo: string) {
     try {
-      await ApproveBookingRequest(requestId, statusTo)
-      // Optionally refetch items after approving
-      const updatedItems = await ReadBookingItemsByRequestedTo()
-      setItems(updatedItems)
+      await ApproveBookingRequest(requestId, statusTo);
+      const updatedItems = await ReadBookingItemsByRequestedTo();
+      setItems(updatedItems);
     } catch (error) {
-      console.error('Failed to change status:', error)
+      console.error('Failed to change status:', error);
     }
   }
-  
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Requests</h1>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Start Date/Time</TableHead>
-              <TableHead>End Date/Time</TableHead>
-              <TableHead>Requested Quantity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...items].reverse().map((item) => (
-              <TableRow key={item.$id} className="border-b border-gray-200 hover:bg-muted">
-                <TableCell>{item.itemName}</TableCell>
-                <TableCell>{item.start}</TableCell>
-                <TableCell>{item.end}</TableCell>
-                <TableCell>{item.bookedQuantity}</TableCell>
-                <TableCell>
-                  <Badge
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.status === 'pending'
-                        ? 'bg-yellow-200 text-yellow-800'
-                        : item.status === 'approved'
-                        ? 'bg-green-200 text-green-800'
-                        : item.status === 'rejected'
-                        ? 'bg-red-200 text-red-800'
-                        : item.status === 'issued'
-                        ? 'bg-blue-200 text-blue-800'
-                        : 'bg-gray-200 text-gray-800'
-                    }`}
-                  >
-                    {item.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "approved")} title='Approve'>
-                    <FilePenIcon className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "rejected")} title='Reject'>
-                    <TrashIcon className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+    <Suspense fallback={<Loading />}>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-6">Requests</h1>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Start Date/Time</TableHead>
+                <TableHead>End Date/Time</TableHead>
+                <TableHead>Requested Quantity</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {[...items].reverse().map((item) => (
+                <TableRow key={item.$id} className="border-b border-gray-200 hover:bg-muted">
+                  <TableCell>{item.itemName}</TableCell>
+                  <TableCell>{item.start}</TableCell>
+                  <TableCell>{item.end}</TableCell>
+                  <TableCell>{item.bookedQuantity}</TableCell>
+                  <TableCell>
+                    <Badge
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.status === 'pending'
+                          ? 'bg-yellow-200 text-yellow-800'
+                          : item.status === 'approved'
+                          ? 'bg-green-200 text-green-800'
+                          : item.status === 'rejected'
+                          ? 'bg-red-200 text-red-800'
+                          : item.status === 'issued'
+                          ? 'bg-blue-200 text-blue-800'
+                          : 'bg-gray-200 text-gray-800'
+                      }`}
+                    >
+                      {item.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "approved")} title='Approve'>
+                      <FilePenIcon className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" onClick={() => approveItem(item.$id, "rejected")} title='Reject'>
+                      <TrashIcon className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+    </Suspense>
   )
 }
 
