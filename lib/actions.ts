@@ -200,6 +200,8 @@ export async function ReadInventoryItemById(itemId: string) {
       addedBy: response.addedBy,
       damagedQuantity: response.damagedQuantity,
       defaultStatus: response.defaultStatus,
+      maxQuantity: response.maxQuantity,
+      maxTime: response.maxTime
     };
 
     return item;
@@ -401,8 +403,8 @@ export async function CreateBookingRequest(formdata: FormData) {
   const status = formdata.get("status") as string;
 
   // COMBINE DATE AND TIME INTO ISO STRING
-  const start = new Date(`${startDate}T${startTime}`).toISOString();
-  const end = new Date(`${endDate}T${endTime}`).toISOString();
+  const start = new Date(`${startDate.split('-').reverse().join('-')}T${startTime}`).toISOString();
+  const end = new Date(`${endDate.split('-').reverse().join('-')}T${endTime}`).toISOString();
 
   try {
     // Create a new booking request in Appwrite

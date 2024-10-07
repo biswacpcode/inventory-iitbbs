@@ -18,14 +18,8 @@ import Loading from "@/components/shared/Loader";
 export default function Component({ params }: { params: { id: string } }) {
   const [item, setItem] = useState<any>(null);
   const [zyada, setZyada] = useState(true);
-  const [currentDate, setCurrentDate] = useState("");
-  const [currentTime, setCurrentTime] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDateMin, setEndDateMin] = useState("");
   const [purpose, setPurpose] = useState("");
-  const [purLength, setPurLength] = useState(0);
-  const [startTime, setStartTime] = useState(""); // To track start time
-  const [endTime, setEndTime] = useState(""); // To track end time
+  const [purLength, setPurLength] = useState(0); // To track start time // To track end time
   const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
@@ -42,82 +36,33 @@ export default function Component({ params }: { params: { id: string } }) {
         setCouncilName(council.lastName);
     }
     }
-    
-
-    const today = new Date();
-    const date = today.toISOString().split("T")[0];
-    const time = today.toTimeString().split(":").slice(0, 2).join(":");
-    setCurrentDate(date);
-    setCurrentTime(time);
 
     fetchItem();
   }, [params.id]);
 
   const handleQuantityChange = (e: any) => {
     const value = parseInt(e.target.value, 10);
-    setZyada(isNaN(value) || (value > item.availableQuantity && value > 0));
+    setZyada(isNaN(value) || (value > item.availableQuantity && value > 0) || value > item.maxQuantity);
   };
 
-  const handleStartDateChange = (e: any) => {
-    const selectedStartDate = e.target.value;
-    setStartDate(selectedStartDate);
-    setEndDateMin(selectedStartDate);
-    checkEmptyFields(
-      selectedStartDate,
-      startTime,
-      endDateMin,
-      endTime,
-      purpose
-    );
-  };
+ 
 
-  const handleStartTimeChange = (e: any) => {
-    const selectedStartTime = e.target.value;
-    setStartTime(selectedStartTime);
-    checkEmptyFields(
-      startDate,
-      selectedStartTime,
-      endDateMin,
-      endTime,
-      purpose
-    );
-  };
+  
 
-  const handleEndDateChange = (e: any) => {
-    const selectedEndDate = e.target.value;
-    setEndDateMin(selectedEndDate);
-    checkEmptyFields(startDate, startTime, selectedEndDate, endTime, purpose);
-  };
-
-  const handleEndTimeChange = (e: any) => {
-    const selectedEndTime = e.target.value;
-    setEndTime(selectedEndTime);
-    checkEmptyFields(
-      startDate,
-      startTime,
-      endDateMin,
-      selectedEndTime,
-      purpose
-    );
-  };
-
+  
+  
   const handlePurposeChange = (e: any) => {
     const purposeValue = e.target.value;
     setPurpose(purposeValue);
     setPurLength(purposeValue.length);
-    checkEmptyFields(startDate, startTime, endDateMin, endTime, purposeValue);
+    checkEmptyFields(purposeValue);
   };
   
 
   const checkEmptyFields = (
-    startDate: string,
-    startTime: string,
-    endDate: string,
-    endTime: string,
     purpose: string
   ) => {
-    const isAnyFieldEmpty =
-      !startDate || !startTime || !endDate || !endTime || !purpose.trim();
+    const isAnyFieldEmpty =!purpose.trim();
     setZyada(isAnyFieldEmpty);
   };
 
@@ -131,19 +76,40 @@ export default function Component({ params }: { params: { id: string } }) {
 
     setIsLoading(true);
 
-    try {
 
+
+    try {
       const bookedQuantity = parseInt(
         (e.currentTarget.elements.namedItem("bookedQuantity") as HTMLInputElement).value,
         10
       );
+      const formatDate = (date: Date) => {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      };
+      
+      // Get the current date and time
+      const currentDate = new Date();
+      const startDate = formatDate(currentDate);
+      const startTime = currentDate.toTimeString().split(" ")[0]; // HH:MM:SS format
+      
+      // Calculate endDate by adding maxTime (in days) to the current date
+      const maxTime = item.maxTime; // Replace this with your actual maxTime value
+      const endDate = new Date(currentDate);
+      endDate.setDate(endDate.getDate() + maxTime);
+      const formattedEndDate = formatDate(endDate);
+      
+      // Set end time to 23:59:59
+      const endTime = "23:59:59";
       // Prepare form data
       const formData = new FormData();
       formData.append("itemId", item.$id);
       formData.append("requestedTo", item.society);
       formData.append("startDate", startDate);
       formData.append("startTime", startTime);
-      formData.append("endDate", endDateMin);
+      formData.append("endDate", formattedEndDate);
       formData.append("endTime", endTime);
       formData.append("bookedQuantity", bookedQuantity.toString());
       formData.append("purpose", purpose);
@@ -189,6 +155,13 @@ export default function Component({ params }: { params: { id: string } }) {
             
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
+            <PackageIcon className="w-5 h-5" />
+            <span>Maximum Amount: {item.maxQuantity}</span>
+            <Separator orientation="vertical" className="h-5" />
+            <span>Allowed Time to Keep: {item.maxTime}</span>
+            
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
             <UsersIcon className="w-5 h-5" />
             <span>Society: {societyName}</span>
           </div>
@@ -213,48 +186,11 @@ export default function Component({ params }: { params: { id: string } }) {
               <div className="grid gap-2">
                 <input type="hidden" name="itemId" value={item.$id} />
                 <input type="hidden" name="requestedTo" value={item.society} />
-                <Label htmlFor="start-date">Start Date</Label>
-                <Input
-                  type="date"
-                  id="start-date"
-                  name="startDate"
-                  min={currentDate}
-                  onChange={handleStartDateChange}
-                />
+                
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="start-time">Start Time</Label>
-                <Input
-                  type="time"
-                  id="start-time"
-                  name="startTime"
-                  min={currentDate === startDate ? currentTime : ""}
-                  onChange={handleStartTimeChange}
-                />
-              </div>
+              
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="end-date">End Date</Label>
-                <Input
-                  type="date"
-                  id="end-date"
-                  name="endDate"
-                  min={endDateMin || currentDate}
-                  onChange={handleEndDateChange}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="end-time">End Time</Label>
-                <Input
-                  type="time"
-                  id="end-time"
-                  name="endTime"
-                  min={endDateMin === startDate ? currentTime : ""}
-                  onChange={handleEndTimeChange}
-                />
-              </div>
-            </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="quantity">Quantity</Label>
               <Input
