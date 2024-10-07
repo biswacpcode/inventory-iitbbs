@@ -5,12 +5,11 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Loading from '@/components/shared/Loader'
-import { useSearchParams } from 'next/navigation'
 
 export default function Page() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const searchParams = useSearchParams();
+  const params = new URLSearchParams(document.location.search);
 
   async function checkAuthorization() {
     const isSociety = await checkRole("Society");
@@ -44,8 +43,8 @@ export default function Page() {
 
   // Automatically approve or reject based on search params
   useEffect(() => {
-    const approveId = searchParams.get('approveId');
-    const rejectId = searchParams.get('rejectId');
+    const approveId = params.get('approveId');
+    const rejectId = params.get('rejectId');
 
     if (approveId) {
       approveItem(approveId, 'approved');
@@ -53,7 +52,7 @@ export default function Page() {
     if (rejectId) {
       approveItem(rejectId, 'rejected');
     }
-  }, [searchParams]);
+  }, [params]);
 
   // Function to approve or reject an item
   async function approveItem(requestId: string, statusTo: string) {
