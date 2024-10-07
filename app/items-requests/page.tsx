@@ -9,7 +9,6 @@ import Loading from '@/components/shared/Loader'
 export default function Page() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const params = new URLSearchParams(document.location.search);
 
   async function checkAuthorization() {
     const isSociety = await checkRole("Society");
@@ -35,24 +34,25 @@ export default function Page() {
 
   // Fetch requests using useEffect
   useEffect(() => {
-    
-    
-
-    checkAuthorization();
+   checkAuthorization();
   }, []);
 
   // Automatically approve or reject based on search params
   useEffect(() => {
+    
+  const params = new URLSearchParams(window.location.search);
     const approveId = params.get('approveId');
     const rejectId = params.get('rejectId');
+    
 
     if (approveId) {
       approveItem(approveId, 'approved');
+      
     }
     if (rejectId) {
       approveItem(rejectId, 'rejected');
     }
-  }, [params]);
+  }, []);
 
   // Function to approve or reject an item
   async function approveItem(requestId: string, statusTo: string) {

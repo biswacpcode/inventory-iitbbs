@@ -85,7 +85,35 @@ export async function CreateInventoryItem(formdata: FormData) {
 
   redirect("/inventory");
 }
-//Uploading image
+//check coorect Society
+
+export async function checkSocietyCorrect(requestId: string){
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    return false; // Or handle the unauthorized case as needed
+  }
+
+  try{
+    const userId = user.id;
+    const us = await ReadUserById(userId);
+    const society_extracted = us.$id;
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.BOOKINGS_COLLECTION_ID!, 
+      [Query.equal("$id", [requestId])]
+    );
+    if (society_extracted === response.documents[0].requestedTo)
+      return true;
+    else
+    return false;
+  }catch (error) {
+    console.error("Failed to check role:", error);
+    throw new Error("Failed to check role");
+  }
+
+}
 
 //Check if authorized role or not
 export async function checkRole(role: string){
@@ -321,7 +349,7 @@ export async function ReadUserById(userId: string) {
 
     // Map the document to the InventoryItem type
     const user = {
-      $id: response.$id,
+      $id: response.id,
       firstName: response.firstName,
       lastName: response.lastName,
       role: response.role,
