@@ -1,5 +1,5 @@
 'use client'
-import { ReadBookingItemsByRequestedTo, ApproveBookingRequest, checkRole } from '@/lib/actions'
+import { ReadBookingItemsByRequestedTo, ApproveBookingRequest, checkRole, checkSocietyCorrect } from '@/lib/actions'
 import { useEffect, useState, SVGProps , Suspense } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -37,20 +37,34 @@ export default function Page() {
    checkAuthorization();
   }, []);
 
+  async function validSociety(requestId: string){
+    return await checkSocietyCorrect(requestId)
+  }
+
   // Automatically approve or reject based on search params
   useEffect(() => {
+
     
   const params = new URLSearchParams(window.location.search);
     const approveId = params.get('approveId');
     const rejectId = params.get('rejectId');
-    
+    const requestId = (approveId) ? approveId : ((rejectId) ? rejectId : "no params");
+
+    const valid_society = validSociety(requestId);
+    if (!(valid_society))
+    {
+      alert("You are not the authorized society to make this change\nYou have been flagged");
+      window.location.href = window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+    }
 
     if (approveId) {
       approveItem(approveId, 'approved');
+      window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
       
     }
     if (rejectId) {
       approveItem(rejectId, 'rejected');
+      window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
     }
   }, []);
 
