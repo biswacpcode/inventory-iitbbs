@@ -38,7 +38,11 @@ export default function Page() {
   }, []);
 
   async function validSociety(requestId: string){
-    return await checkSocietyCorrect(requestId)
+    const response = await checkSocietyCorrect(requestId);
+    if (!response){
+      alert("You are not the authorized society to make this change\nYou have been flagged");
+    }
+    return response;
   }
 
   // Automatically approve or reject based on search params
@@ -50,21 +54,22 @@ export default function Page() {
     const rejectId = params.get('rejectId');
     const requestId = (approveId) ? approveId : ((rejectId) ? rejectId : "no params");
 
-    const valid_society = validSociety(requestId);
+    const valid_society= validSociety(requestId);
     if (!(valid_society))
-    {
-      alert("You are not the authorized society to make this change\nYou have been flagged");
+    {      
       window.location.href = window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+    } else {
+      if (approveId) {
+        approveItem(approveId, 'approved');
+        window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+        
+      }
+      if (rejectId ) {
+        approveItem(rejectId, 'rejected');
+        window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
     }
 
-    if (approveId) {
-      approveItem(approveId, 'approved');
-      window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
-      
-    }
-    if (rejectId) {
-      approveItem(rejectId, 'rejected');
-      window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+    
     }
   }, []);
 
