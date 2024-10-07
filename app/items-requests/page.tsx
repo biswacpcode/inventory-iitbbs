@@ -1,6 +1,6 @@
 'use client'
 import { ReadBookingItemsByRequestedTo, ApproveBookingRequest, checkRole } from '@/lib/actions'
-import { useEffect, useState, SVGProps } from 'react'
+import { useEffect, useState, SVGProps , Suspense } from 'react'
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -71,6 +71,7 @@ export default function Page() {
   }
 
   return (
+    <Suspense fallback={<Loading />}>
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Requests</h1>
       <div className="overflow-x-auto">
@@ -123,6 +124,7 @@ export default function Page() {
         </Table>
       </div>
     </div>
+    </Suspense>
   )
 }
 
