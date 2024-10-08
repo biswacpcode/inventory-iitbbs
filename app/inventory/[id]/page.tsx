@@ -22,6 +22,7 @@ export default function Component({ params }: { params: { id: string } }) {
   const [purpose, setPurpose] = useState("");
   const [purLength, setPurLength] = useState(0); // To track start time // To track end time
   const [societyName, setSocietyName] = useState<string>("");
+  const [societyEmail, setSocietyEmail] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
     const [user, setUser] = useState<any>(null);
@@ -37,6 +38,7 @@ export default function Component({ params }: { params: { id: string } }) {
         const society = await ReadUserById(fetchedItem.society);
         const council = await ReadUserById(fetchedItem.council);
         setSocietyName(society.lastName);
+        setSocietyEmail(society.email);
         setCouncilName(council.lastName);
 
     }
@@ -144,7 +146,7 @@ export default function Component({ params }: { params: { id: string } }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            recipientEmail: "22mm01002@iitbbs.ac.in",
+            recipientEmail: `${societyEmail}`,
             bookingDetails,
           }),
         });
