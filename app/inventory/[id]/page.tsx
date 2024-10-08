@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { JSX, SVGProps, useState, useEffect, FormEvent } from "react";
 import { ReadInventoryItemById, CreateBookingRequest, ReadUserById } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
+import { useRouter } from "next/navigation";
+import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export default function Component({ params }: { params: { id: string } }) {
   const [item, setItem] = useState<any>(null);
@@ -23,6 +25,7 @@ export default function Component({ params }: { params: { id: string } }) {
   const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
 
   useEffect(() => {
     async function fetchItem() {
@@ -116,7 +119,32 @@ export default function Component({ params }: { params: { id: string } }) {
       formData.append("status", item.defaultStatus);
 
       // Call the CreateBookingRequest function
-      await CreateBookingRequest(formData);
+      const requestId = await CreateBookingRequest(formData);
+      const { getUser } = getKindeServerSession();
+  const user = await getUser();
+  
+
+      const bookingDetails = {
+        requesterName: "Biswajit Rout",
+        itemName: item.itemName,
+        bookedQuantity: bookedQuantity.toString(),
+        purpose: purpose,
+        approveLink: `https://inventory-iitbbs.vercel.app/items-requests?approveId=${requestId}`,
+        rejectLink: `https://inventory-iitbbs.vercel.app/items-requests?rejectId=${requestId}`
+      };
+  
+      // Call the API route to send the email
+      await fetch('/api/send-booking-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientEmail: "22mm01002@iitbbs.ac.in",
+          bookingDetails,
+        }),
+      });
+  
 
       // Optionally, you can navigate the user or show a success message here
       // For example:
@@ -127,6 +155,7 @@ export default function Component({ params }: { params: { id: string } }) {
     } finally {
       setIsLoading(false);
     }
+    router.push('/requests');
   };
 
   if (!item) return <Loading/>;

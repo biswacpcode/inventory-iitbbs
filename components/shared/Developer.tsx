@@ -6,7 +6,7 @@ export default function Developer(){
             <div className="text-primary">
         <span className="text-base"><b>Developed By: </b></span>
         <br />
-        <span className="text-xs md:text-sm"> <b>Full Stack :</b> Biswajit Rout | Anurag Mani Tripathi | Ashish Kumar Singh </span>
+        <span className="text-xs md:text-sm"> <b>Full Stack :</b>  Anurag Mani Tripathi | Biswajit Rout | Ashish Kumar Singh </span>
         <br />
         <span className="text-xs md:text-sm"><b>Front-End:</b> Aditya Raj </span>
         </div>

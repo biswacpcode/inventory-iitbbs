@@ -4,7 +4,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { database, users , storage} from "@/lib/appwrite.config";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { Query } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { Socket } from "dgram";
 
 // ADDING NEW INVENTORY ITEM
@@ -496,13 +496,15 @@ export async function CreateBookingRequest(formdata: FormData) {
   // COMBINE DATE AND TIME INTO ISO STRING
   const start = new Date(`${startDate.split('-').reverse().join('-')}T${startTime}`).toISOString();
   const end = new Date(`${endDate.split('-').reverse().join('-')}T${endTime}`).toISOString();
+  
+  const id = ID.unique();
 
   try {
     // Create a new booking request in Appwrite
     await database.createDocument(
       process.env.DATABASE_ID!,
       process.env.BOOKINGS_COLLECTION_ID!, // Ensure these are set in your .env.local
-      "unique()", // Generates a unique document ID
+      id, // Generates a unique document ID
       {
         itemId,
         start,
@@ -530,8 +532,8 @@ export async function CreateBookingRequest(formdata: FormData) {
   } catch (error) {
     console.error("Failed to create booking request:", error);
     throw new Error("Failed to create booking request");
-  }
-  redirect(`/requests`);
+  }return id;
+  
 }
 
 // GETTING BOOKING ITEMS BY "requestedUser" ID
