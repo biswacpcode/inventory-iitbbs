@@ -85,6 +85,95 @@ export async function CreateInventoryItem(formdata: FormData) {
 
   redirect("/inventory");
 }
+
+
+// update image bucket
+export async function UpdateImage(fileId: string, formdata: FormData){
+  const imageFile = formdata.get("itemImage") as File;
+  if (imageFile && imageFile.size > 0) {
+  try {
+    const response = await storage.deleteFile(
+      process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+      fileId
+    );
+  } catch (error) {
+    console.error("Error deleting old file to Appwrite storage:", error);
+    throw new Error("Failed to deleting old image to Appwrite storage");
+  }
+}
+  try {
+    const response = await storage.createFile(
+      process.env.BUCKET_ID!,    // Your Appwrite bucket ID
+      'unique()',                // Unique file ID
+      imageFile                  // The file to be uploaded
+    );
+
+    // After uploading, construct the URL to access the file
+    const imageUrl = `https://cloud.appwrite.io/v1/storage/buckets/${process.env.BUCKET_ID}/files/${response.$id}/view?project=${process.env.PROJECT_ID}`;
+    
+    return imageUrl;
+
+
+    
+  } catch (error) {
+    console.error("Error updating file to Appwrite storage:", error);
+    throw new Error("Failed to updating image to Appwrite storage");
+  }
+
+
+}
+
+//Modify Inventory Item
+export async function ModifyInventoryItem(itemId: string, formdata: FormData) {
+  // VERIFYING USER
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/");
+    return;
+  }
+
+  // EXTRACTING FORM DATA
+  const itemName = formdata.get("itemName") as string;
+  const itemImage = formdata.get("itemImage") as string; // Corrected key
+  const totalQuantity = parseInt(formdata.get("total-quantity") as string, 10);
+  const availableQuantity = parseInt(formdata.get("available-quantity") as string, 10);
+  const description = formdata.get("description") as string;
+  const society = formdata.get("society") as string;
+  const council = formdata.get("council") as string;
+  const defaultStatus = formdata.get("defaultStatus") as string;
+  const maxQuantity = parseInt(formdata.get("allowed-quantity") as string,10);
+  const maxTime = parseInt(formdata.get("allowed-time") as string, 10);
+  console.log(itemName);
+
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,              // Your Appwrite database ID
+      process.env.ITEMS_COLLECTION_ID!,
+      itemId,
+      {
+        itemName: itemName,
+        itemImage: itemImage,
+        description: description,
+        totalQuantity: totalQuantity,
+        availableQuantity: availableQuantity,
+        maxQuantity: maxQuantity,
+        maxTime: maxTime,
+        society: society,
+        council: council,
+        defaultStatus: defaultStatus
+      }
+    )
+  }catch(error){
+    console.error("Failed to modify inventory", error);
+    throw new Error("Failed to modify inventory");
+  }
+}
+
+
+
+
 //check coorect Society
 
 export async function checkSocietyCorrect(requestId: string){
@@ -168,7 +257,9 @@ export async function ReadInventoryItems() {
       council: doc.council,
       addedBy: doc.addedBy,
       issuedQuantity: doc.totalQuantity-doc.availableQuantity-doc.damagedQuantity,
+      damagedQuantity: doc.damagedQuantity
     }));
+    console.log(items)
 
     return items;
   } catch (error) {
@@ -540,7 +631,7 @@ export async function ReadItemsInSociety() {
 }
 //Delting the item
 
-export async function UpdateInventoryItem(itemId: string, total: number, available: number){
+export async function UpdateInventoryItem(itemId: string, total: number, available: number, damaged: number){
   try{
     await database.updateDocument(
       process.env.DATABASE_ID!,
@@ -548,7 +639,8 @@ export async function UpdateInventoryItem(itemId: string, total: number, availab
       itemId, // Use itemId to identify the document
       {
         availableQuantity: available,
-        totalQuantity: total
+        totalQuantity: total,
+        damagedQuantity: damaged
       }
     );
   }
@@ -798,3 +890,6 @@ export async function ReadBookingItemsByRequestedTo() {
     throw new Error("Failed to read booking items");
   }
 }
+
+
+

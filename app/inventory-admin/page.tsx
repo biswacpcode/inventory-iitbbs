@@ -23,12 +23,14 @@ interface InventoryItem {
     totalQuantity: number;
     availableQuantity: number;
     issuedQuantity: number;
+    damagedQuantity: number;
   }
   
   // Define a type for the edited item
   interface EditedItem {
     totalQuantity?: number;
     availableQuantity?: number;
+    damagedQuantity: number;
   }
   
   export default function InventoryAdmin() {
@@ -95,9 +97,10 @@ interface InventoryItem {
     
       const totalQuantity = editedItems[itemId]?.totalQuantity ?? item.totalQuantity;
       const availableQuantity = editedItems[itemId]?.availableQuantity ?? item.availableQuantity;
+      const damagedQuantity = editedItems[itemId]?.damagedQuantity ?? item.damagedQuantity;
     
       try {
-        await UpdateInventoryItem(itemId, totalQuantity, availableQuantity);
+        await UpdateInventoryItem(itemId, totalQuantity, availableQuantity, damagedQuantity);
         fetchItems(); // Refetch items after successful update
     
         // After saving, reset the edited item to show the delete button
@@ -189,7 +192,10 @@ interface InventoryItem {
                   className="border-b border-gray-200 hover:bg-muted"
                 >
                   <TableCell>
+                    <Link href={`/inventory-admin/${item.$id}`}>
                     {item.itemName}
+                    </Link>
+                    
                       
                   </TableCell>
                   <TableCell>
@@ -206,8 +212,14 @@ interface InventoryItem {
                       <Button onClick={() => handleQuantityChange(item.$id, 'availableQuantity', 1)}>+</Button>
                     </div>
                   </TableCell>
+                  <TableCell><div className="flex items-center">
+                      <Button onClick={() => handleQuantityChange(item.$id, 'damagedQuantity', -1)}>-</Button>
+                      <span className="mx-2">{editedItems[item.$id]?.damagedQuantity ?? item.damagedQuantity}</span>
+                      <Button onClick={() => handleQuantityChange(item.$id, 'damagedQuantity', 1)}>+</Button>
+                    </div>
+                    </TableCell>
                   <TableCell>{item.issuedQuantity}</TableCell>
-                  <TableCell>{(item.totalQuantity-item.availableQuantity)-item.issuedQuantity}</TableCell>
+                 
                   <TableCell className="flex items-center gap-2 w-40 left-5">
                     {loading === item.$id ? (
                       <Loading /> // Placeholder for your loading component
