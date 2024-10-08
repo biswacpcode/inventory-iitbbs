@@ -25,7 +25,6 @@ export default async function Navbar() {
   const user = await getUser();
 
   const userId = user?.id;
-  console.log(userId)
   let role: string | null;// or just let role;
   if (userId) {
     const us = await ReadUserById(userId);

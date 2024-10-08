@@ -12,10 +12,9 @@ import  Input  from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { JSX, SVGProps, useState, useEffect, FormEvent } from "react";
-import { ReadInventoryItemById, CreateBookingRequest, ReadUserById } from "@/lib/actions";
+import { ReadInventoryItemById, CreateBookingRequest, ReadUserById, DeleteBookingRequest } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import { useRouter } from "next/navigation";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 
 export default function Component({ params }: { params: { id: string } }) {
   const [item, setItem] = useState<any>(null);
@@ -25,7 +24,9 @@ export default function Component({ params }: { params: { id: string } }) {
   const [societyName, setSocietyName] = useState<string>("");
     const [councilName, setCouncilName] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const router = useRouter();
+
 
   useEffect(() => {
     async function fetchItem() {
@@ -37,7 +38,14 @@ export default function Component({ params }: { params: { id: string } }) {
         const council = await ReadUserById(fetchedItem.council);
         setSocietyName(society.lastName);
         setCouncilName(council.lastName);
+
     }
+    const response = await fetch('/api/user-info',{
+      method:'POST'
+    });
+    const data = await response.json();
+    const user = data.user;
+    setUser(user);
     }
 
     fetchItem();
@@ -120,36 +128,45 @@ export default function Component({ params }: { params: { id: string } }) {
 
       // Call the CreateBookingRequest function
       const requestId = await CreateBookingRequest(formData);
-      const { getUser } = getKindeServerSession();
-  const user = await getUser();
-  
+      if (user){
+        const bookingDetails = {
+          requesterName: `${user.given_name} ${user.family_name}`,
+          itemName: item.itemName,
+          bookedQuantity: bookedQuantity.toString(),
+          purpose: purpose,
+          approveLink: `https://inventory-iitbbs.vercel.app/items-requests?approveId=${requestId}`,
+          rejectLink: `https://inventory-iitbbs.vercel.app/items-requests?rejectId=${requestId}`
+        };
+ // Call the API route to send the email
+        await fetch('/api/send-booking-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recipientEmail: "22mm01002@iitbbs.ac.in",
+            bookingDetails,
+          }),
+        });
+      }else{
+        await DeleteBookingRequest(requestId, item.$id, bookedQuantity);
+        alert("You may have been logged out. \nPlease try again");
+        router.push('/');
+      }
+      
 
-      const bookingDetails = {
-        requesterName: "Biswajit Rout",
-        itemName: item.itemName,
-        bookedQuantity: bookedQuantity.toString(),
-        purpose: purpose,
-        approveLink: `https://inventory-iitbbs.vercel.app/items-requests?approveId=${requestId}`,
-        rejectLink: `https://inventory-iitbbs.vercel.app/items-requests?rejectId=${requestId}`
-      };
+      
   
-      // Call the API route to send the email
-      await fetch('/api/send-booking-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          recipientEmail: "22mm01002@iitbbs.ac.in",
-          bookingDetails,
-        }),
-      });
+     
+      
+    
+    }
   
 
       // Optionally, you can navigate the user or show a success message here
       // For example:
       // router.push("/success");
-    } catch (error) {
+     catch (error) {
       console.error("Error creating booking request:", error);
       // Handle error appropriately (e.g., show a notification)
     } finally {
@@ -159,7 +176,6 @@ export default function Component({ params }: { params: { id: string } }) {
   };
 
   if (!item) return <Loading/>;
-  console.log(item.itemImage);
 
   return (
     <div className="grid md:grid-cols-2 gap-8 p-4 md:p-8 lg:p-12">
