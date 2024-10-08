@@ -126,7 +126,7 @@ await ModifyInventoryItem(item.$id, uploadformdata);
       // Handle error appropriately (e.g., show a notification)
     } finally {
       setIsLoading(false);
-      window.location.href = `https://localhost:3000/inventory-admin/${params.id}`;
+      window.location.href = `https://inventory-iitbbs.vercel.app/inventory-admin/${params.id}`;
     }
   };
 
