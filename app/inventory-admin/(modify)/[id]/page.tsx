@@ -21,7 +21,7 @@ import  Input  from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { JSX, SVGProps, useState, useEffect, FormEvent } from "react";
-import { ReadInventoryItemById, CreateBookingRequest, ReadUserById, CreateInventoryItem, fetchUsersByRole, UpdateImage, ModifyInventoryItem } from "@/lib/actions";
+import { ReadInventoryItemById, CreateBookingRequest, ReadUserById, CreateInventoryItem, fetchUsersByRole, UpdateImage, ModifyInventoryItem, checkRole } from "@/lib/actions";
 import Loading from "@/components/shared/Loader";
 import { Models } from "node-appwrite";
 import Modal from "@/components/shared/Modal";
@@ -37,6 +37,16 @@ export default function Component({ params }: { params: { id: string } }) {
 
 
   useEffect(() => {
+    async function checkAuthorization() {
+        const isAdmin = await checkRole("Admin");
+        if (!isAdmin) {
+          alert("You are unauthorized.");
+           // Redirect if unauthorized
+           window.location.href = "https://inventory-iitbbs.vercel.app/";
+        } else {
+          fetchItem(); // Fetch data if authorized
+        }
+      }
     async function fetchItem() {
       const fetchedItem = await ReadInventoryItemById(params.id);
       setItem(fetchedItem);
@@ -48,7 +58,7 @@ export default function Component({ params }: { params: { id: string } }) {
      
     }
 
-    fetchItem();
+    checkAuthorization();
   }, [params.id]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
