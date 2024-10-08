@@ -1,23 +1,52 @@
-'use client'
-import { ReadBookingItemsByRequestedTo, ApproveBookingRequest, checkRole, checkSocietyCorrect } from '@/lib/actions'
-import { useEffect, useState, SVGProps , Suspense } from 'react'
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import Loading from '@/components/shared/Loader'
+'use client';
+import {
+  ReadBookingItemsByRequestedTo,
+  ApproveBookingRequest,
+  checkRole,
+  checkSocietyCorrect,
+} from '@/lib/actions';
+import { useEffect, useState, SVGProps, Suspense } from 'react';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import Loading from '@/components/shared/Loader';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
 
   async function checkAuthorization() {
-    const isSociety = await checkRole("Society");
-    if (!isSociety) {
-      alert("You are unauthorized.");
-      // Redirect if unauthorized
-      window.location.href = "https://inventory-iitbbs.vercel.app/";
-    } else {
-      fetchItems(); // Fetch data if authorized
+    try {
+      const response = await fetch('/api/user-info', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      const user = data.user;
+      setUser(user);
+      if (!user) {
+        router.push('/api/auth/login?');
+      } else {
+        const isSociety = await checkRole('Society');
+        if (!isSociety) {
+          alert('You are unauthorized.');
+          window.location.href = 'https://inventory-iitbbs.vercel.app/';
+        } else {
+          fetchItems(); // Fetch data if authorized
+          handleURLParams(); // Handle query parameters
+        }
+      }
+    } catch (error) {
+      console.error('Authorization check failed:', error);
     }
   }
 
@@ -32,48 +61,37 @@ export default function Page() {
     }
   }
 
-  // Fetch requests using useEffect
-  useEffect(() => {
-   checkAuthorization();
-  }, []);
-
-  async function validSociety(requestId: string){
+  async function validSociety(requestId: string) {
     const response = await checkSocietyCorrect(requestId);
-    if (!response){
-      alert("You are not the authorized society to make this change\nYou have been flagged");
+    if (!response) {
+      alert(
+        'You are not the authorized society to make this change\nYou have been flagged'
+      );
     }
     return response;
   }
 
-  // Automatically approve or reject based on search params
-  useEffect(() => {
-
-    
-  const params = new URLSearchParams(window.location.search);
+  async function handleURLParams() {
+    const params = new URLSearchParams(window.location.search);
     const approveId = params.get('approveId');
     const rejectId = params.get('rejectId');
-    const requestId = (approveId) ? approveId : ((rejectId) ? rejectId : "no params");
+    const requestId = approveId || rejectId || 'no params';
 
-    const valid_society= validSociety(requestId);
-    if (!(valid_society))
-    {      
-      window.location.href = window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+    const isValidSociety = await validSociety(requestId);
+    if (!isValidSociety) {
+      window.location.href = 'https://inventory-iitbbs.vercel.app/items-requests';
     } else {
       if (approveId) {
-        approveItem(approveId, 'approved');
-        window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
-        
+        await approveItem(approveId, 'approved');
+        window.location.href = 'https://inventory-iitbbs.vercel.app/items-requests';
       }
-      if (rejectId ) {
-        approveItem(rejectId, 'rejected');
-        window.location.href = "https://inventory-iitbbs.vercel.app/items-requests";
+      if (rejectId) {
+        await approveItem(rejectId, 'rejected');
+        window.location.href = 'https://inventory-iitbbs.vercel.app/items-requests';
+      }
     }
+  }
 
-    
-    }
-  }, []);
-
-  // Function to approve or reject an item
   async function approveItem(requestId: string, statusTo: string) {
     try {
       await ApproveBookingRequest(requestId, statusTo);
@@ -84,10 +102,13 @@ export default function Page() {
     }
   }
 
+  useEffect(() => {
+    checkAuthorization();
+  }, []);
+
   if (loading) {
     return <Loading />;
   }
-
   return (
     <Suspense fallback={<Loading />}>
     <div className="container mx-auto px-4 py-8">

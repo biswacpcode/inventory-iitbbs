@@ -130,7 +130,7 @@ export default function Component({ params }: { params: { id: string } }) {
 
       // Call the CreateBookingRequest function
       const requestId = await CreateBookingRequest(formData);
-      if (user){
+      if (user && item.defaultStatus==="pending"){
         const bookingDetails = {
           requesterName: `${user.given_name} ${user.family_name}`,
           itemName: item.itemName,
