@@ -91,8 +91,9 @@ export async function CreateInventoryItem(formdata: FormData) {
 export async function UpdateImage(fileId: string, formdata: FormData){
   const imageFile = formdata.get("itemImage") as File;
   if (imageFile && imageFile.size > 0) {
+    if (fileId!=="https:")
   try {
-    const response = await storage.deleteFile(
+    await storage.deleteFile(
       process.env.BUCKET_ID!,    // Your Appwrite bucket ID
       fileId
     );
@@ -100,7 +101,7 @@ export async function UpdateImage(fileId: string, formdata: FormData){
     console.error("Error deleting old file to Appwrite storage:", error);
     throw new Error("Failed to deleting old image to Appwrite storage");
   }
-}
+
   try {
     const response = await storage.createFile(
       process.env.BUCKET_ID!,    // Your Appwrite bucket ID
@@ -119,6 +120,7 @@ export async function UpdateImage(fileId: string, formdata: FormData){
     console.error("Error updating file to Appwrite storage:", error);
     throw new Error("Failed to updating image to Appwrite storage");
   }
+}
 
 
 }
@@ -895,3 +897,85 @@ export async function ReadBookingItemsByRequestedTo() {
 
 
 
+// ASSIGN ROLE FUNCTIONS
+
+export const ReadAllUsers = async ({
+  search = "",
+  limit = 50,
+  page = 1,
+}: {
+  search?: string;
+  limit?: number;
+  page?: number;
+}) => {
+  const offset = (page - 1) * limit;
+  let queries = [];
+
+  if (search) {
+    queries.push(Query.search("firstName", search));
+    queries.push(Query.search("email", search));
+  }
+  queries.push(Query.limit(limit));
+queries.push(Query.offset(offset));
+
+  const response = await database.listDocuments(
+    process.env.DATABASE_ID!,
+    process.env.USERS_COLLECTION_ID!,
+    queries,
+  );
+
+  return { users: response.documents as any[], total: response.total };
+};
+
+
+//ResetUserRole
+export const ResetUserRole = async (userId: string) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    process.env.USERS_COLLECTION_ID!,
+    userId
+  );
+
+  if (!user.originalRole) {
+    throw new Error("Original role not found.");
+  }
+
+  user.role = user.originalRole;
+  user.id = user.$id || null;
+
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    process.env.COLLECTION_ID!,
+    userId,
+    user
+  );
+};
+
+
+export const UpdateUserRole = async (
+  userId: string,
+  newRole: string,
+  societyId?: string
+) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    process.env.USERS_COLLECTION_ID!,
+    userId
+  );
+
+  // Store original role and society if not already stored
+  if (!user.originalRole) {
+    user.originalRole = user.role;
+  }
+
+  // Update role and society
+  user.role = newRole;
+  user.id = societyId || null;
+
+  await database.updateDocument(
+    process.env.DATABASE_ID!,
+    process.env.USERS_COLLECTION_ID!,
+    userId,
+    user
+  );
+};
