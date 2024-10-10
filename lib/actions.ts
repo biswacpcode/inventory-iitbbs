@@ -854,12 +854,20 @@ export async function ReadBookingItemsByRequestedTo() {
   }
 
   try {
+
+    // fetch user from Appwrite
+    const fetchedUser = await database.getDocument(
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
+      user.id
+    )
     // Fetch booking items from Appwrite
     const response = await database.listDocuments(
       process.env.DATABASE_ID!,
       process.env.BOOKINGS_COLLECTION_ID!,
-      [Query.equal("requestedTo", [user.id])]
+      [Query.equal("requestedTo", [fetchedUser.id])]
     );
+
 
     // Initialize an array to store the items with itemName
     const itemsWithNames = [];
@@ -937,17 +945,21 @@ export const ResetUserRole = async (userId: string) => {
   );
 
   if (!user.originalRole) {
-    throw new Error("Original role not found.");
+    user.originalRole=user.role;
   }
 
   user.role = user.originalRole;
-  user.id = user.$id || null;
+  user.id = user.$id;
 
   await database.updateDocument(
     process.env.DATABASE_ID!,
-    process.env.COLLECTION_ID!,
+    process.env.USERS_COLLECTION_ID!,
     userId,
-    user
+    {
+      role: user.originalRole,
+      id:user.$id,
+      originalRole : user.originalRole
+    }
   );
 };
 
@@ -955,7 +967,6 @@ export const ResetUserRole = async (userId: string) => {
 export const UpdateUserRole = async (
   userId: string,
   newRole: string,
-  societyId?: string
 ) => {
   const user = await database.getDocument(
     process.env.DATABASE_ID!,
@@ -970,12 +981,105 @@ export const UpdateUserRole = async (
 
   // Update role and society
   user.role = newRole;
-  user.id = societyId || null;
 
   await database.updateDocument(
     process.env.DATABASE_ID!,
     process.env.USERS_COLLECTION_ID!,
     userId,
-    user
+    {
+      role:newRole,
+      originalRole:user.originalRole
+    }
   );
 };
+
+//Assign Society
+export const AssignSociety = async (
+  userId: string,
+  societyId: string,
+) => {
+  const user = await database.getDocument(
+    process.env.DATABASE_ID!,
+    process.env.USERS_COLLECTION_ID!,
+    userId
+  );
+
+  // Store original role and society if not already stored
+  if (user.id===societyId) {
+    return;
+  }
+  try{
+    await database.updateDocument(
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
+      userId,
+      {
+        id: societyId,
+      }
+    );
+  }catch(error){
+    console.error("Failed to assign Society ", error);
+    throw new Error("Failed to assign Society");
+  }
+
+  
+};
+
+
+/// Read All Role Users / Searched user.
+
+export async function ReadAllUsersByRoleOrSearch(search: string)
+{
+  if (search !=="")
+  {
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
+      [Query.equal("email", [search])]
+    );
+
+    const doc = response.documents[0];
+    if (!doc)
+      return undefined;
+    else{
+      const user = await ReadUserById(doc.id);
+      const userfetched = {
+        $id: doc.$id,
+        id: doc.id,
+        name: `${doc.firstName} ${doc.lastName}`,
+        email: doc.email,
+        role: doc.role,
+        originalRole: (doc.originalRole)?doc.originalRole:doc.role,
+        socName: `${user.firstName} ${user.lastName}`
+      }
+      return [userfetched];
+    }
+    
+  }else{
+    const response = await database.listDocuments(
+      process.env.DATABASE_ID!,
+      process.env.USERS_COLLECTION_ID!,
+      [Query.equal("role", ["Admin", "Society", "Council"])]
+    );
+
+    const fetchedusers = await Promise.all(
+      response.documents.map(async (doc) => {  
+        const user = await ReadUserById(doc.id);
+        return{
+          $id: doc.$id,
+      id: doc.id,
+      name: `${doc.firstName} ${doc.lastName}`,
+      email: doc.email,
+      role: doc.role,
+      originalRole: (doc.originalRole)?doc.originalRole:doc.role,
+      socName: `${user.firstName} ${user.lastName}`
+        }
+    }));
+    return fetchedusers;
+  }
+}
+
+export async function getSocietyName(userId: string){
+  const user = await ReadUserById(userId);
+  return `${user.firstName} ${user.lastName}`;
+}

@@ -18,14 +18,14 @@ export default function Component() {
           id="hero"
           className="bg-primary py-20 px-6 md:px-12 lg:px-20 flex flex-col items-center justify-center text-center"
         >
-          <h1 className="text-4xl font-bold text-primary-foreground mb-4 max-w-3xl">
+          <h1 className="text-2xl md:text-4xl font-bold text-primary-foreground mb-4 max-w-3xl">
             Streamline Your Inventory Management with Vault IIT BBS
           </h1>
-          <p className="text-lg text-primary-foreground mb-8 max-w-2xl">
+          <p className="text-sm md:text-lg text-primary-foreground mb-8 max-w-2xl">
             Vault IIT BBS is a powerful inventory management system designed to help the Students&apos; Gymkhana at IIT
             Bhubaneswar keep track of their assets and resources.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex gap-4">
             <a href="#about">
             <Button variant="outline" className="w-full sm:w-auto">
               Learn More

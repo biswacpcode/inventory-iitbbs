@@ -26,8 +26,7 @@ export function ProfileDropdown({ picture }: DropdownProps) {
       <DropdownMenuContent className="w-32">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem><Link href={`/profile`}>Profile</Link></DropdownMenuItem>
-        <DropdownMenuItem><Link href={`/myProjects`}>My Projects</Link></DropdownMenuItem>
+        <DropdownMenuItem><Link href={`/requests`}>Profile</Link></DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem><LogoutLink>Sign out</LogoutLink></DropdownMenuItem>
       </DropdownMenuContent>
